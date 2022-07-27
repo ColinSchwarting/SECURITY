@@ -1,0 +1,66 @@
+
+stack username   pwd                
+16 	COSC-005-M 	K5lVnWXlJ9qF8CW 10.50.38.249
+                Katal373!
+linops
+ssh -x student@10.50.32.84
+
+winops
+xfreerdp /v:10.50.20.49 /u:student /dynamic-resolution +clipboard
+----------------------------------------------------------------------------------------------------------------------
+Day 1 -- Exploit Researched
+id
+hostname
+cat /etc/os-release >> both get the release number, one gets a bit more than the other
+lsb_release -a >> in case the one above doesn't work
+uname -a >> kernel version
+hostnamectl >> THIS GETS BOTH KERNEL AND RELEASE
+
+use exploit-db.com to find an exploit based on the kernel number and type of OS
+search box: kernel number
+
+#Install python packages
+sudo apt-get install python-lxml python-requests python3-pip -y
+
+vim web.py 
+
+import lxml.html
+import requests
+
+page = requests.get('http://quotes.toscrape.com')
+tree = lxml.html.fromstring(page.content)
+
+authors = tree.xpath('//small[@class="author"]/text()')
+
+print ('Authors: ',authors)
+
+#makes a website scraper ^^^
+
+#on line 33, it says it's looking for the html code small class ="author"
+#the requests.get is the site it's pulling from
+#go to the website, inspect (F12) and view the html tags
+
+#Going to a new page on the website, need to change the url
+#Going to filter based on tags, so need to change "authors = tree.xpath('//small[@class="author"]/text()')"
+#Making it now Tags = tree.xpath('//a[@class="tag"]/text()')
+
+---------------------------------------------------------------------
+
+Recon/Scanning 
+1. Host Discovery (Ping Sweep)
+
+              for i in {1..254}; do ping -c 1 -W 1 10.1.1.$1 | grep 'from'; done
+
+2. Host Enumeration (Port Scanning)
+
+              nmap -Pn -T5 192.168.65.20 -p-
+3. Host Interrogration (Service)
+              nmap -T5 -sV 192.168.665.20 -p (ports grabbed from above)
+              nmap -Pn -T5 --script=banner.nse 192.168.65.20 -p 21-23,80 <<<< banner grabs the services
+              nmap -Pn -T5 --script=discovery 192.168.65.20 -p 21-23,80 << runs EVERY discovery script
+              nmap -Pn -T5 --script="discovery or safe" 192.168.65.20 -p 21-23,80 << runs every discovery and runs EVERY safe script"
+              nmap -Pn -T5 --script=ftp*
+              
+              
+#CREDENTIAL REUSE 
+    using the same creds over and over again
