@@ -998,3 +998,41 @@ Recon: view map and record given information
        dynamic tunnel set up: ssh localhost -p 31301 -D 9040 -NT
        enter the jumpbox to sweep the network: ssh localhost -p 
        
+peda plugin = highlist red, vulnerable function (THIS IS WHAT IT THINKS IS VULNERABLE)
+
+#Buffer Overflow
+0. run the program
+./func
+1. attempt to buffer overflow the program
+https://wiremask.eu/tools/buffer-overflow-pattern-generator/
+enter this into input of function
+this throw 200 characters at it
+2. determine buffer overflow offset (need user privs)
+   view the last one
+   segfault at ########
+   enter the value above into the 'find the offset' section on the website
+   this will produce the minimum offset need to buffer overflow
+   
+3. Validate the offset + craft exploit
+	nano linux_buffer.py
+	
+	#!/usr/bin/python
+	#buffer
+	buffer = "A" * 62
+	
+	#eip (placeholder)
+	eip = "B" * 4
+	
+	#nopsled
+	nop = "\x90" * 10
+	
+	#shellcode
+	
+	print(buffer + eip + nop)
+	
+
+
+
+
+
+
