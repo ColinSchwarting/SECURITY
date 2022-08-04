@@ -1052,7 +1052,9 @@ this throw 200 characters at it
 	
 4. generate shellcode
 	msfconsole (update if you have to)
-
+	   use payload/linux/x86/exec
+	
+	linux privileges
 
 
 
