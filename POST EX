@@ -1,0 +1,42 @@
+ONCE YOU GET INTO THE BOX
+
+embedding persistence
+  linux: cron jobs /etc/crontab, the scheduled tasks for linux
+  windows: inettab
+  -ssh control socket: establishing a persistant ssh connection
+  -use the box as a pivot point
+  -bash profiles
+  
+ssh control sockets
+  -data exfiltraction
+  -looking for large data transfers
+  
+host enumeration  
+  -check the os version
+  -check for listening connections
+  -to check for users: windows: net user, linux: cat /etc/passwd 
+  -linux password file: cat /etc/shadow
+  - /bin/ is where the binaries are
+  - /tmp/ is world writable, if you need to write a script here
+  
+  - to check window registry: either gci WHATEEVER THE REG KEY IS, or just use regedit
+  
+  -linux running process; ps -elf
+  -htop shows currect process and heirarchy of parent processes
+  -ps -elf --forest also shows this
+  -to check services: systemctl --type=service --state=active << shows active services only
+  
+  -check /etc/crontab and /var/spool/cron/crontabs
+  -check /etc/rsyslog.d/50-default.conf (or any other .conf in rsyslog)
+  
+   -on windows, reg query hklm\software\microsoft\windows\currentversion\run
+                          hkcu\software\microsoft\windows\currentversion\run
+                          hklm\software\microsoft\windows\currentversion\runonce
+                          hkcu\software\microsoft\windows\currentversion\runonce
+                          
+                          powershell: get-processes
+                                      get-wmiobject win32_service
+                                      get-wmiobject -class *
+                                      get-wmiobject -class win32_process
+                                      
+if you need to transfer files, just scp them
