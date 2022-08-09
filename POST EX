@@ -40,3 +40,8 @@ host enumeration
                                       get-wmiobject -class win32_process
                                       
 if you need to transfer files, just scp them
+when checking directories, dont forget to do the full "ls -la" to look for hidden files
+cat /etc/hosts to find ips and other connections
+sudo ls /var/spool/cron/crontabs
+sudo cat /var/spool/cron/crontabs/root
+
