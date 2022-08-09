@@ -1,0 +1,64 @@
+when on a linux box, run a sudo -l to see what sudo permissions are allowed
+
+insecure permissions:
+cron < view the cronjobs and see if you can replace them
+world writable files and directories: ie; /tmp, /var/tmp, users password
+Dot "." in the path
+
+vulnerable software and services
+  why consider it for priv escalation
+  what commands?
+  
+figure out init type?
+man init
+stat /sbin/init
+ls -latr /proc/1/exe
+
+
+ausearch, pulls from audit.log
+
+file /var/log/wtmp
+find /var/log -type f -mmin -10 2> /dev/null
+journalctl -f -u ssh
+
+cat /var/log/auth.log | egrep -v "opened|closed"
+tail /var/log/auth.log
+
+clear logs:
+fuck it we ball
+
+change time with timestomps
+
+ps -aux
+
+/etc/syslog.d 
+
+to change the way commands are run, run a $PATH and check if there's a .: in front of the $PATH
+this indicates a theres change in the run order, a command doing something in not intentional 
+
+do a sudo -l, see what command you can run and check https://gtfobins.github.io/ to see how to exploit it
+
+check for suid bits set: find / -type f -perm /4000 -ls 2>/dev/null
+check for guid bits set: find / -type f -perm /2000 -ls 2>/dev/null
+check for suid and/or guid bits set: find / -type f -perm /6000 -ls 2>/dev/null
+see which commands to run and check the gtfo bins for a shell and suid
+
+crontabs:
+cat /etc/crontab << main config file for the cron service
+if you see something other than cron.hourly, cron.daily, cron.weekly, and cron.monthly, investigate it
+if you see nothing, check inside the above directories for something sus, most likely inside the cron.hourly
+i guess you could also check /etc/cron.d but its not important
+
+get kernel version: uname -a OR cat /proc/version
+
+where are logs? cd /var/log << oh lookie here theres some logs
+cat btmp << checks failed logs
+cat wtmp << every time a user logged in and out
+you can use lslogins to make this look nicer
+lslogins btmp 
+lslogins wtmp
+lastb << shows last failed logins
+users << current logged in users
+lslogins (by itself) << a record of all users logged in
+
+
