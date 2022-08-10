@@ -60,5 +60,29 @@ lslogins wtmp
 lastb << shows last failed logins
 users << current logged in users
 lslogins (by itself) << a record of all users logged in
+lastlog << last time a user logged in
 
+journalctl -f <<
+sudo journalctl SYSLOG_FACILITY=10 << shows content for secutiy log
+auth.log
 
+wc -l <logfile> << count number of lines in log
+head -n 10 <log file> << first 10
+tail 
+grep
+
+TO FIND WORLD WRITABLE DIRECTORIES: find / -type d -perm /2 2>/dev/null
+
+THERES A USER RUNNING A COMMAND IN THE /TMP EVERY FEW MINUTES, HE'S LISTING THE DIRECTORY
+in the /tmp directory, write a new file called 'ls'. This is because the other user has a .: in his file path and is running all commands from his cwd
+
+i want to find the flag, located in his working directory
+so inside my new file called 'ls', i run this command /bin/ls /home/billybob >> directory.txt
+after 5 minutes, I see theres a text file inside, a password list and a flag
+cool got the flag, time to get into the box
+inside my new script, check sudo -l, see that billybob can run 'cat'
+cat /etc/shadow
+on my linops, do a john the ripper to crack etc/shadow with the password list given to me
+zeus had privs to run, 
+10-million-password-list-top-10000.txt
+f!@g1.txt
