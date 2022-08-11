@@ -1,0 +1,124 @@
+#Day 1 --recon 
+host discovery (ping sweep) (bash)
+host enumeration (port scanning)
+-nc
+-nmap
+service enumeration 
+- -sv
+-NSE scripts
+#Day 2 -- web ex
+still recon the sites
+-if we discovery port 80 (OR ANY SERVICE RUNNING APACHE)
+-added our web nse 
+--http-emum.nse
+--http-robots.txt.nse
+
+on the website
+-- <ip>/robots.txt
+--legit surfing
+
+web explotiation (initial access/information)
+-directory traversal (information)
+-command injection (info/access)
+-webshell (info/access)
+--3 conditions for a webshell
+--can you upload? are files being sanitized? can you get to the uploads directory?
+-ssh keys (access)
+
+#Day 3 --web exploitation (sql)
+1) login.php
+
+2) webpages
+
+GET vs POST
+truth statement
+-different variations
+POST
+dan' or 1='1
+dan' or 1='1;
+dan' or 1='1; #
+
+GET 
+dan or 1='1
+dan or 1='1;
+dan or 1='1; #
+Default SQL statements
+- UNION select <columns> from <database>.<columns>
+golden statement
+- UNION select table_schema,table_name,column_name from information_schema.columns
+
+#DAY 4 --reverse engineering
+Research, read, and understand C code (Decompiler within Ghidra)
+Research, read, and understand ASM language (Disassembler within Ghidra or GDB)
+NO PATCHING NEEDED
+
+#Day 7-8 ( Buffer overflows)
+Linux
+1) input
+ProgramA.exe prompts for input
+ProgramA.exe << $(python exploit.py)
+
+ProgramB.exe <arg> 
+ProgramB.exe $(python exploit.py)
+
+2) Target, EIP/JMP ESP
+
+3) sudo
+-target, sudo certain programs (when running a program, run with sudo so it runs with root privs)
+Windows
+-IP
+-PORT
+-Payload
+
+#Day 9 -- Post exploitation
+Windows 
+-Users
+-File/Directory attributes (R/W/X/Hidden,data streams)
+-network
+-registry
+
+Linux
+-user
+-file/directory attributes (-----, hidden,owners and groups)
+-file
+/home/<user>
+/root
+-cron
+-sudo
+-network
+
+file transfers
+scp -P <src> <dst> 
+python3 -m http.server << must be hosted on linops
+
+#Day 10 --linux priv
+sudo -l 
+SUID/SGID --> GTFObins
+crontabs
+
+linux persistence 
+crontabs
+
+#Day 11 --window priv
+services/task scheduler
+-Binary replacement << binary will be provided for you 
+-DLL replacement
+
+auditpol vs. local security policies
+we care about logging! YOU NEED PRIVS TO VIEW AUDITPOL THO
+
+event viewer
+-all users can access the event viewer!
+-you cannot access logs that require privileges! (security, system)
+
+windows persitence
+registry
+HKLM << non volatile
+HKCC
+HKU << non volatile
+HKCU
+HKCR
+
+HKLM or HKCU
+/Run
+/Runonce
