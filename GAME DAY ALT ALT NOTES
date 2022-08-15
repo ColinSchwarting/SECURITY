@@ -1,3 +1,6 @@
+IGNORE ANYTHING THAT'S 10.0.x.x or 10.10.x.x
+IGNORE ANYTHING THAT's x.x.x.30 or x.x.x.190
+
 ##Recon
 1. Host Discovery (ping sweep)
    for i in {1..254} ;do (ping -c 1 192.168.65.$i | grep "bytes from" &) ;done
